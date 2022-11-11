@@ -18,7 +18,7 @@ class Entity
 public:
     EntityType type = ENTITY_TYPE_OTHER;
     bool isControllable = false, isDead = false;
-    int side = SIDE_NONE, hp = 0, reloadTicks = 0;
+    int side = SIDE_NONE, maxHp = 0, hp = 0, reloadTicks = 0;
     double x = 0, y = 0, speed = 0, dx = 0, dy = 0;
     int width = 0, height = 0;
     SDL_Texture* texture = null;
@@ -171,14 +171,14 @@ public:
 
 // Entity ==============================================================================================================
 
-Entity::Entity(const EntityType type, const char* name, SDL_Texture* texture, Weapon* weapon, int hp, double speed,
+Entity::Entity(const EntityType type, const char* name, SDL_Texture* texture, Weapon* weapon, int maxHP, double speed,
                int side)
 {
     this->type = type;
     this->name = std::string(name);
     this->texture = texture;
     this->weapon = weapon;
-    this->hp = hp;
+    this->hp = this->maxHp = maxHP;
     this->speed = speed;
     this->side = side;
     SDL_QueryTexture(texture, null, null, &width, &height);
@@ -241,7 +241,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Default weapon fire");
     degree += r.nextDouble(6.0) - 3.0;
     Bullet* b = new Bullet(
-            owner, 1, 8, 8,
+            owner, 10, 8, 8,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
@@ -256,7 +256,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy default weapon fire");
     degree += r.nextDouble(2.0) - 1.0;
     Bullet* b = new Bullet(
-            owner, 1, 8, 8,
+            owner, 10, 8, 8,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
@@ -401,10 +401,9 @@ void App::mainTickLoop()
         // tick entities
         for (const shared_ptr<Entity>& e: entities)
         {
-            if (!e->isDead)
-            {
+            if (e->type != ENTITY_TYPE_PLAYER && !e->isDead)
                 e->tick();
-            }
+            else if (e->type == ENTITY_TYPE_PLAYER) e->tick();
         }
         // refresh screen
         SDL_SetRenderDrawColor(renderer, 64, 64, 128, 255);
@@ -433,14 +432,28 @@ Player::Player()
     type = ENTITY_TYPE_PLAYER;
     isControllable = true;
     side = SIDE_PLAYER;
-    hp = 1000000000;
+    maxHp = 100;
+    hp = 100;
     speed = 6;
     width = 40;
     height = 32;
+    x = 100;
+    y = WINDOW_HEIGHT / 2 - height / 2;
     texture = PLACEHOLDER_TEXTURE;
     weapon = app->getWeapon("PlayerWeapon0");
     name = "Player";
     customTickBefore = [](Entity* self) {
+        if (self->isDead)
+        {
+            self->hp++;
+            if (self->hp == self->maxHp)
+            {
+                self->isDead = false;
+                self->x = 100;
+                self->y = WINDOW_HEIGHT / 2 - self->height / 2;
+            }
+            return;
+        }
         self->dx = self->dy = 0;
         if (app->pressedKey[SDL_SCANCODE_W])
             self->dy = -self->speed;
@@ -474,7 +487,8 @@ Enemy0::Enemy0() : Entity()
 {
     type = ENTITY_TYPE_ENEMY;
     side = SIDE_ENEMY;
-    hp = 1;
+    maxHp = 10;
+    hp = 10;
     reloadTicks = 10;
     x = WINDOW_WIDTH;
     y = 450;
@@ -509,6 +523,7 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
     this->damage = damage;
     type = ENTITY_TYPE_BULLET;
     side = owner->side;
+    maxHp = 1;
     hp = 1;
     this->x = x;
     this->y = y;
