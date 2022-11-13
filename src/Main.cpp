@@ -1,8 +1,12 @@
 #include "ProjectNuma.h"
 #include "CommonUtil.h"
 #include "RandomUtil.h"
+#include "RenderUtil.h"
+#include "SoundUtil.h"
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
+static Mix_Music* bgm = null;
+static Mix_Music* NOBGM = null;
 static App* app;
 static Random r;
 
@@ -17,7 +21,7 @@ class Entity
 {
 public:
     EntityType type = ENTITY_TYPE_OTHER;
-    bool isControllable = false, isDead = false;
+    bool isControllable = false, isDead = false, isInvincible = false;
     int side = SIDE_NONE, maxHp = 0, hp = 0, reloadTicks = 0;
     double x = 0, y = 0, speed = 0, dx = 0, dy = 0;
     int width = 0, height = 0;
@@ -105,6 +109,8 @@ private:
     shared_ptr<Player> player;
     std::map<const char*, SDL_Texture*> textures;
     std::map<const char*, Weapon*> weapons;
+    std::map<const char*, Mix_Chunk*> sounds;
+    std::map<const char*, Mix_Music*> musics;
     std::list<shared_ptr<Entity>> entities;
 
 public:
@@ -119,6 +125,14 @@ public:
     SDL_Texture* loadTexture(const char* fileName);
 
     SDL_Texture* getTexture(const char* name);
+
+    Mix_Chunk* loadSound(const char* fileName);
+
+    Mix_Music* loadMusic(const char* fileName);
+
+    Mix_Chunk* getSound(const char* name);
+
+    Mix_Music* getMusic(const char* name);
 
     Weapon* getWeapon(const char* name);
 
@@ -211,13 +225,14 @@ void Entity::tick()
     {
         for (auto& e: app->getEntities())
         {
-            if (!e->isDead && e->type != ENTITY_TYPE_BULLET && e->side != side && CommonUtil.checkCollision(
+            if (!e->isDead && e->type != ENTITY_TYPE_BULLET && e->side != side && !e->isInvincible && CommonUtil.checkCollision(
                     e->x, e->y, e->width, e->height, x, y, width, height
             ))
             {
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s collision with %s", e->name.c_str(), name.c_str());
                 this->hp = 0;
                 e->hp -= ((Bullet*) this)->damage;
+                SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/hit.wav"));
                 break;
             }
         }
@@ -226,6 +241,20 @@ void Entity::tick()
     {
         if (type != ENTITY_TYPE_BULLET)SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s dies", name.c_str());
         isDead = true;
+        if (x >= 0 && y >= 0 && x + width <= WINDOW_WIDTH && y + height <= WINDOW_HEIGHT)
+            switch (type)
+            {
+                case ENTITY_TYPE_ENEMY:
+                {
+                    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
+                    break;
+                }
+                case ENTITY_TYPE_PLAYER:
+                {
+                    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
+                    break;
+                }
+            }
     }
     else if (customTickAfter != null)
     {
@@ -247,6 +276,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
     );
     b->texture = app->getTexture("assets/projectnuma/textures/misc/black.png");
     app->addEntity(b);
+    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0.wav"));
 }
 
 // EnemyWeapon0 ========================================================================================================
@@ -266,6 +296,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
         self->hp--;
     };
     app->addEntity(b);
+    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
 }
 
 // App =================================================================================================================
@@ -294,6 +325,14 @@ void App::startup()
     // initialize player
     player = make_shared<Player>(Player());
     addEntity(player.get());
+    // initialize sound
+    SoundUtil.init();
+    for (const char* a: soundFiles)
+        loadSound(a);
+    for (const char* a: musicFiles)
+        loadMusic(a);
+    bgm = getMusic("assets/projectnuma/sounds/music/test.ogg");
+    SoundUtil.setBGM(bgm);
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialization completed. Entering main loop");
     mainTickLoop();
 }
@@ -316,9 +355,9 @@ SDL_Renderer* App::getRenderer()
 
 SDL_Texture* App::loadTexture(const char* fileName)
 {
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture %s", fileName);
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
     SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
-    assert(texture != null);
+    if (texture == null) throw std::runtime_error(string("Texture not found: ").append(fileName));
     textures[fileName] = texture;
     return texture;
 }
@@ -326,6 +365,26 @@ SDL_Texture* App::loadTexture(const char* fileName)
 SDL_Texture* App::getTexture(const char* name)
 {
     return textures[name];
+}
+
+Mix_Chunk* App::loadSound(const char* fileName)
+{
+    sounds.emplace(fileName, SoundUtil.loadSound(fileName));
+}
+
+Mix_Music* App::loadMusic(const char* fileName)
+{
+    musics.emplace(fileName, SoundUtil.loadMusic(fileName));
+}
+
+Mix_Chunk* App::getSound(const char* name)
+{
+    return sounds[name];
+}
+
+Mix_Music* App::getMusic(const char* name)
+{
+    return musics[name];
 }
 
 Weapon* App::getWeapon(const char* name)
@@ -411,7 +470,7 @@ void App::mainTickLoop()
         // place textures
         for (const shared_ptr<Entity>& e: entities)
         {
-            if (!e->isDead) CommonUtil.placeTexture(renderer, e->texture, e->x, e->y, e->width, e->height);
+            if (!e->isDead) RenderUtil.placeTexture(renderer, e->texture, e->x, e->y, e->width, e->height);
         }
         SDL_RenderPresent(renderer);
         // clean up
