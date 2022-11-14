@@ -3,11 +3,13 @@
 #include "RandomUtil.h"
 #include "RenderUtil.h"
 #include "SoundUtil.h"
+#include "SessionUtil.h"
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
 static Mix_Music* bgm = null;
 static Mix_Music* NOBGM = null;
 static App* app;
+static Session session;
 static Random r;
 
 using namespace std;
@@ -43,6 +45,10 @@ public:
     void (* customTickBefore)(Entity* self) = null;
 
     void (* customTickAfter)(Entity* self) = null;
+
+    void (* onSpawn)(Entity* self) = null;
+
+    void (* onDeath)(Entity* self) = null;
 };
 
 /**
@@ -130,6 +136,8 @@ private:
     std::map<const char*, Mix_Chunk*> sounds;
     std::map<const char*, Mix_Music*> musics;
     std::list<shared_ptr<Entity>> entities;
+    std::list<shared_ptr<Entity>> environment;
+    std::list<shared_ptr<Entity>> ui;
 
 public:
     bool pressedKey[1024]{};
@@ -160,7 +168,7 @@ public:
 
     Entity* addEntity(Entity* e);
 
-    void removeEntity(Entity* e);
+    void removeEntity(Entity* e, bool callOnDeath);
 
     void mainTickLoop();
 };
@@ -232,9 +240,8 @@ Entity* Entity::setLocation(double x1, double y1)
 
 void Entity::tick()
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s tickBefore", name.c_str());
+    // tickBefore
     if (customTickBefore != null) customTickBefore(this);
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s tick", name.c_str());
     // general tick operations
     move(dx, dy);
     if (weapon != null && reloadTicks > 0) reloadTicks--;
@@ -255,30 +262,15 @@ void Entity::tick()
             }
         }
     }
+    // tickAfter or not
     if (hp <= 0)
     {
         if (type != ENTITY_TYPE_BULLET)SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s dies", name.c_str());
+        if (onDeath != null) onDeath(this);
         isDead = true;
-        if (x >= 0 && y >= 0 && x + width <= WINDOW_WIDTH && y + height <= WINDOW_HEIGHT)
-            switch (type)
-            {
-                case ENTITY_TYPE_ENEMY:
-                {
-                    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
-                    break;
-                }
-                case ENTITY_TYPE_PLAYER:
-                {
-                    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
-                    break;
-                }
-            }
     }
     else if (customTickAfter != null)
-    {
-        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s tickAfter", name.c_str());
         customTickAfter(this);
-    }
 }
 
 // PlayerWeapon0 =======================================================================================================
@@ -323,14 +315,14 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Weapon 1 fire");
     degree += r.nextDouble(6.0) - 3.0;
-    for(int i=-2; i!=3; i++)
+    for (int i = -2; i != 3; i++)
     {
         Bullet* b = new Bullet(
                 owner, bulletDamage, 8, 8,
                 owner->x + owner->width / 2, owner->y + owner->height / 2,
                 bulletSpeed, degree - i * 3
         );
-        b->texture=bulletTexture;
+        b->texture = bulletTexture;
         app->addEntity(b);
     }
     SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon1.wav"));
@@ -356,13 +348,6 @@ void App::startup()
     // initialize textures
     loadTexture("assets/projectnuma/textures/misc/black.png");
     PLACEHOLDER_TEXTURE = loadTexture("assets/projectnuma/textures/misc/placeholder.png");
-    // initialize weapons
-    weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
-    weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
-    weapons.emplace("PlayerWeapon1", new PlayerWeapon1());
-    // initialize player
-    player = make_shared<Player>(Player());
-    addEntity(player.get());
     // initialize sound
     SoundUtil.init();
     for (const char* a: soundFiles)
@@ -371,6 +356,16 @@ void App::startup()
         loadMusic(a);
     bgm = getMusic("assets/projectnuma/sounds/music/test.ogg");
     SoundUtil.setBGM(bgm);
+    // initialize weapons
+    weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
+    weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
+    weapons.emplace("PlayerWeapon1", new PlayerWeapon1());
+    // initialize player
+    player = make_shared<Player>(Player());
+    addEntity(player.get());
+    // load session
+    session.load();
+    // completed
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialization completed. Entering main loop");
     mainTickLoop();
 }
@@ -379,9 +374,11 @@ void App::shutdown()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutting down");
     IMG_Quit();
+    Mix_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+    session.save();
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Completed");
     exit(0);
 }
@@ -402,7 +399,9 @@ SDL_Texture* App::loadTexture(const char* fileName)
 
 SDL_Texture* App::getTexture(const char* name)
 {
-    return textures[name];
+    SDL_Texture* t = textures[name];
+    if (t == null) throw std::runtime_error(string("Texture not found: ").append(name));
+    return t;
 }
 
 Mix_Chunk* App::loadSound(const char* fileName)
@@ -417,17 +416,23 @@ Mix_Music* App::loadMusic(const char* fileName)
 
 Mix_Chunk* App::getSound(const char* name)
 {
-    return sounds[name];
+    Mix_Chunk* s = sounds[name];
+    if (s == null) throw std::runtime_error(string("Sound not found: ").append(name));
+    return s;
 }
 
 Mix_Music* App::getMusic(const char* name)
 {
-    return musics[name];
+    Mix_Music* m = musics[name];
+    if (m == null) throw std::runtime_error(string("Music not found: ").append(name));
+    return m;
 }
 
 Weapon* App::getWeapon(const char* name)
 {
-    return weapons[name];
+    Weapon* w = weapons[name];
+    if (w == null) throw std::runtime_error(string("Weapon not found: ").append(name));
+    return w;
 }
 
 Entity* App::getPlayer()
@@ -444,18 +449,19 @@ Entity* App::addEntity(Entity* e)
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Add entity %s", e->name.c_str());
     entities.emplace_back(e);
+    if (e->onSpawn != null) e->onSpawn(e);
     return e;
 }
 
-void App::removeEntity(Entity* e)
+void App::removeEntity(Entity* e, bool callOnDeath) //FIXME: crashes on call
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Remove entity %s", e->name.c_str());
-    for (shared_ptr<Entity> ee: entities)
+    for (const shared_ptr<Entity>& ee: entities)
     {
         if (ee.get() == e)
         {
+            if (callOnDeath && e->onDeath != null) e->onDeath(e);
             entities.remove(ee);
-            free(e);
             SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Entity removed");
             return;
         }
@@ -513,11 +519,7 @@ void App::mainTickLoop()
         SDL_RenderPresent(renderer);
         // clean up
         if (tick % 100 == 0)
-        {
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Cleaning up (%zu entities)", entities.size());
             entities.remove_if([](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; });
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Cleanup completed. %zu entites left", entities.size());
-        }
         SDL_Delay(16);
     }
 }
@@ -537,7 +539,7 @@ Player::Player()
     x = 100;
     y = WINDOW_HEIGHT / 2 - height / 2;
     texture = PLACEHOLDER_TEXTURE;
-    weapon = app->getWeapon("PlayerWeapon1");
+    weapon = app->getWeapon("PlayerWeapon0");
     name = "Player";
     customTickBefore = [](Entity* self) {
         if (self->isDead)
@@ -576,6 +578,12 @@ Player::Player()
                 self->y
         );
     };
+    onSpawn = [](Entity* self) {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
+    };
+    onDeath = [](Entity* self) {
+        SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
+    };
 }
 
 // Enemy0 ==============================================================================================================
@@ -610,6 +618,10 @@ Enemy0::Enemy0() : Entity()
             self->weapon->fire(self, deg);
             self->reloadTicks = self->weapon->reloadTicks;
         }
+    };
+    onDeath = [](Entity* self) {
+        if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
+            SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
     };
 }
 
