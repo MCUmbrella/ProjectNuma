@@ -68,7 +68,7 @@ public:
     PlayerWeapon0()
     {
         bulletSpeed = 20;
-        bulletDamage = 1;
+        bulletDamage = 10;
         reloadTicks = 10;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
@@ -86,8 +86,26 @@ public:
     EnemyWeapon0()
     {
         bulletSpeed = 10;
-        bulletDamage = 1;
+        bulletDamage = 10;
         reloadTicks = 100;
+        bulletTexture = PLACEHOLDER_TEXTURE;
+    }
+
+    void fire(Entity* owner, double degree) override;
+};
+
+/**
+ * PlayerWeapon1.class
+ * extends Weapon
+ */
+class PlayerWeapon1 : public Weapon
+{
+public:
+    PlayerWeapon1()
+    {
+        bulletSpeed = 20;
+        bulletDamage = 5;
+        reloadTicks = 20;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
 
@@ -270,11 +288,11 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Default weapon fire");
     degree += r.nextDouble(6.0) - 3.0;
     Bullet* b = new Bullet(
-            owner, 10, 8, 8,
+            owner, bulletDamage, 8, 8,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
-    b->texture = app->getTexture("assets/projectnuma/textures/misc/black.png");
+    b->texture = bulletTexture;
     app->addEntity(b);
     SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0.wav"));
 }
@@ -286,17 +304,36 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy default weapon fire");
     degree += r.nextDouble(2.0) - 1.0;
     Bullet* b = new Bullet(
-            owner, 10, 8, 8,
+            owner, bulletDamage, 8, 8,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
     b->hp = 100;
-    b->texture = app->getTexture("assets/projectnuma/textures/misc/black.png");
+    b->texture = bulletTexture;
     b->customTickAfter = [](Entity* self) {
         self->hp--;
     };
     app->addEntity(b);
     SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
+}
+
+// PlayerWeapon1 =======================================================================================================
+
+void PlayerWeapon1::fire(Entity* owner, double degree)
+{
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Weapon 1 fire");
+    degree += r.nextDouble(6.0) - 3.0;
+    for(int i=-2; i!=3; i++)
+    {
+        Bullet* b = new Bullet(
+                owner, bulletDamage, 8, 8,
+                owner->x + owner->width / 2, owner->y + owner->height / 2,
+                bulletSpeed, degree - i * 3
+        );
+        b->texture=bulletTexture;
+        app->addEntity(b);
+    }
+    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon1.wav"));
 }
 
 // App =================================================================================================================
@@ -322,6 +359,7 @@ void App::startup()
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
     weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
+    weapons.emplace("PlayerWeapon1", new PlayerWeapon1());
     // initialize player
     player = make_shared<Player>(Player());
     addEntity(player.get());
@@ -499,7 +537,7 @@ Player::Player()
     x = 100;
     y = WINDOW_HEIGHT / 2 - height / 2;
     texture = PLACEHOLDER_TEXTURE;
-    weapon = app->getWeapon("PlayerWeapon0");
+    weapon = app->getWeapon("PlayerWeapon1");
     name = "Player";
     customTickBefore = [](Entity* self) {
         if (self->isDead)
