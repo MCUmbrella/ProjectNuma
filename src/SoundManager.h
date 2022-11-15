@@ -2,8 +2,8 @@
 // Created by mcumbrella on 22-11-13.
 //
 
-#ifndef PROJECTNUMA_SOUNDUTIL_H
-#define PROJECTNUMA_SOUNDUTIL_H
+#ifndef PROJECTNUMA_SOUNDMANAGER_H
+#define PROJECTNUMA_SOUNDMANAGER_H
 
 #include <SDL2/SDL_mixer.h>
 
@@ -76,6 +76,6 @@ public:
         if (m == null) throw std::runtime_error(std::string("Music not found: ").append(name));
         return m;
     }
-} SoundUtil;
+} SoundManager;
 
-#endif //PROJECTNUMA_SOUNDUTIL_H
+#endif //PROJECTNUMA_SOUNDMANAGER_H

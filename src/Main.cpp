@@ -2,8 +2,16 @@
 #include "CommonUtil.h"
 #include "RandomUtil.h"
 #include "RenderUtil.h"
-#include "SoundUtil.h"
+#include "SoundManager.h"
 #include "SessionUtil.h"
+
+// import static
+#define loadSound SoundManager.loadSound
+#define playSound SoundManager.playSound
+#define getSound SoundManager.getSound
+#define loadMusic SoundManager.loadMusic
+#define getMusic SoundManager.getMusic
+#define setBGM SoundManager.setBGM
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
 static App* app;
@@ -245,7 +253,7 @@ void Entity::tick()
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s collision with %s", e->name.c_str(), name.c_str());
                 this->hp = 0;
                 e->hp -= ((Bullet*) this)->damage;
-                SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/hit.wav"));
+                playSound(getSound("assets/projectnuma/sounds/entity/hit.wav"));
                 break;
             }
         }
@@ -274,7 +282,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
     );
     b->texture = bulletTexture;
     app->addEntity(b);
-    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon0.wav"));
+    playSound(getSound("assets/projectnuma/sounds/item/weapon0.wav"));
 }
 
 // EnemyWeapon0 ========================================================================================================
@@ -294,7 +302,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
         self->hp--;
     };
     app->addEntity(b);
-    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
+    playSound(getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
 }
 
 // PlayerWeapon1 =======================================================================================================
@@ -313,7 +321,7 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
         b->texture = bulletTexture;
         app->addEntity(b);
     }
-    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon1.wav"));
+    playSound(getSound("assets/projectnuma/sounds/item/weapon1.wav"));
 }
 
 // App =================================================================================================================
@@ -337,12 +345,12 @@ void App::startup()
     loadTexture("assets/projectnuma/textures/misc/black.png");
     PLACEHOLDER_TEXTURE = loadTexture("assets/projectnuma/textures/misc/placeholder.png");
     // initialize sound
-    SoundUtil.init();
+    SoundManager.init();
     for (const char* a: soundFiles)
-        SoundUtil.loadSound(a);
+        loadSound(a);
     for (const char* a: musicFiles)
-        SoundUtil.loadMusic(a);
-    SoundUtil.setBGM(SoundUtil.getMusic("assets/projectnuma/sounds/music/test.ogg"));
+        loadMusic(a);
+    setBGM(getMusic("assets/projectnuma/sounds/music/test.ogg"));
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
     weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
@@ -550,7 +558,7 @@ Player::Player()
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
     };
     onDeath = [](Entity* self) {
-        SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
+        playSound(getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
     };
 }
 
@@ -589,7 +597,7 @@ Enemy0::Enemy0() : Entity()
     };
     onDeath = [](Entity* self) {
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
-            SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
+            playSound(getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
         session.credit++;
     };
 }
