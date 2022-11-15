@@ -6,8 +6,6 @@
 #include "SessionUtil.h"
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
-static Mix_Music* bgm = null;
-static Mix_Music* NOBGM = null;
 static App* app;
 static Session session;
 static Random r;
@@ -133,8 +131,6 @@ private:
     shared_ptr<Player> player;
     std::map<const char*, SDL_Texture*> textures;
     std::map<const char*, Weapon*> weapons;
-    std::map<const char*, Mix_Chunk*> sounds;
-    std::map<const char*, Mix_Music*> musics;
     std::list<shared_ptr<Entity>> entities;
     std::list<shared_ptr<Entity>> environment;
     std::list<shared_ptr<Entity>> ui;
@@ -151,14 +147,6 @@ public:
     SDL_Texture* loadTexture(const char* fileName);
 
     SDL_Texture* getTexture(const char* name);
-
-    Mix_Chunk* loadSound(const char* fileName);
-
-    Mix_Music* loadMusic(const char* fileName);
-
-    Mix_Chunk* getSound(const char* name);
-
-    Mix_Music* getMusic(const char* name);
 
     Weapon* getWeapon(const char* name);
 
@@ -257,7 +245,7 @@ void Entity::tick()
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s collision with %s", e->name.c_str(), name.c_str());
                 this->hp = 0;
                 e->hp -= ((Bullet*) this)->damage;
-                SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/hit.wav"));
+                SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/hit.wav"));
                 break;
             }
         }
@@ -286,7 +274,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
     );
     b->texture = bulletTexture;
     app->addEntity(b);
-    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0.wav"));
+    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon0.wav"));
 }
 
 // EnemyWeapon0 ========================================================================================================
@@ -306,7 +294,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
         self->hp--;
     };
     app->addEntity(b);
-    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
+    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon0e.wav"));
 }
 
 // PlayerWeapon1 =======================================================================================================
@@ -325,7 +313,7 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
         b->texture = bulletTexture;
         app->addEntity(b);
     }
-    SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/item/weapon1.wav"));
+    SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/item/weapon1.wav"));
 }
 
 // App =================================================================================================================
@@ -351,11 +339,10 @@ void App::startup()
     // initialize sound
     SoundUtil.init();
     for (const char* a: soundFiles)
-        loadSound(a);
+        SoundUtil.loadSound(a);
     for (const char* a: musicFiles)
-        loadMusic(a);
-    bgm = getMusic("assets/projectnuma/sounds/music/test.ogg");
-    SoundUtil.setBGM(bgm);
+        SoundUtil.loadMusic(a);
+    SoundUtil.setBGM(SoundUtil.getMusic("assets/projectnuma/sounds/music/test.ogg"));
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
     weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
@@ -407,30 +394,6 @@ SDL_Texture* App::getTexture(const char* name)
     SDL_Texture* t = textures[name];
     if (t == null) throw std::runtime_error(string("Texture not found: ").append(name));
     return t;
-}
-
-Mix_Chunk* App::loadSound(const char* fileName)
-{
-    sounds.emplace(fileName, SoundUtil.loadSound(fileName));
-}
-
-Mix_Music* App::loadMusic(const char* fileName)
-{
-    musics.emplace(fileName, SoundUtil.loadMusic(fileName));
-}
-
-Mix_Chunk* App::getSound(const char* name)
-{
-    Mix_Chunk* s = sounds[name];
-    if (s == null) throw std::runtime_error(string("Sound not found: ").append(name));
-    return s;
-}
-
-Mix_Music* App::getMusic(const char* name)
-{
-    Mix_Music* m = musics[name];
-    if (m == null) throw std::runtime_error(string("Music not found: ").append(name));
-    return m;
 }
 
 Weapon* App::getWeapon(const char* name)
@@ -587,7 +550,7 @@ Player::Player()
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
     };
     onDeath = [](Entity* self) {
-        SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
+        SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/playerDie.wav"));
     };
 }
 
@@ -626,7 +589,7 @@ Enemy0::Enemy0() : Entity()
     };
     onDeath = [](Entity* self) {
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
-            SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
+            SoundUtil.playSound(SoundUtil.getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
         session.credit++;
     };
 }
