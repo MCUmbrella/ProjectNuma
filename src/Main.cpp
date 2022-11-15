@@ -365,6 +365,8 @@ void App::startup()
     addEntity(player.get());
     // load session
     session.load();
+    player->maxHp=session.hp;
+    player->hp=session.hp;
     // completed
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialization completed. Entering main loop");
     mainTickLoop();
@@ -372,12 +374,15 @@ void App::startup()
 
 void App::shutdown()
 {
+    // shutdown sdl
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutting down");
     IMG_Quit();
     Mix_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+    // save session
+    session.hp=player->maxHp;
     session.save();
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Completed");
     exit(0);
@@ -532,7 +537,7 @@ Player::Player()
     isControllable = true;
     side = SIDE_PLAYER;
     maxHp = 100;
-    hp = 100;
+    hp = 50;
     speed = 6;
     width = 40;
     height = 32;
@@ -622,6 +627,7 @@ Enemy0::Enemy0() : Entity()
     onDeath = [](Entity* self) {
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
             SoundUtil.playSound(app->getSound("assets/projectnuma/sounds/entity/enemyDie.wav"));
+        session.credit++;
     };
 }
 
