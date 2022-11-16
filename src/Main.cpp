@@ -82,7 +82,7 @@ public:
         bulletSpeed = 20;
         bulletDamage = 10;
         reloadTicks = 10;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon0bullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -101,7 +101,7 @@ public:
         bulletSpeed = 20;
         bulletDamage = 5;
         reloadTicks = 20;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon1bullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -120,7 +120,7 @@ public:
         bulletSpeed = 20;
         bulletDamage = 20;
         reloadTicks = 100;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon2bullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -137,9 +137,9 @@ public:
     {
         name = "Laser cannon";
         bulletSpeed = 50;
-        bulletDamage = 50;
+        bulletDamage = 100;
         reloadTicks = 60;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon3bullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -157,7 +157,7 @@ public:
         bulletSpeed = 10;
         bulletDamage = 5;
         reloadTicks = 100;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon0ebullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -174,7 +174,7 @@ public:
     {
         bulletSpeed = 10;
         bulletDamage = 10;
-        reloadTicks = 100;
+        reloadTicks = 30;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
 
@@ -377,7 +377,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
             bulletSpeed, degree
     );
     b->move(0, -b->height / 2);
-    b->texture = getTexture("assets/projectnuma/textures/entity/weapon0bullet.png");
+    b->texture = bulletTexture;
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon0.wav");
 }
@@ -396,7 +396,7 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
                 bulletSpeed, degree - i * 3
         );
         b->move(0, -b->height / 2);
-        b->texture = getTexture("assets/projectnuma/textures/entity/weapon1bullet.png");
+        b->texture = bulletTexture;
         app->addEntity(b);
     }
     playSound("assets/projectnuma/sounds/item/weapon1.wav");
@@ -416,7 +416,7 @@ void PlayerWeapon2::fire(Entity* owner, double degree)
                 bulletSpeed, degree - i * 10
         );
         b->move(-b->width / 2, -b->height / 2);
-        b->texture = getTexture("assets/projectnuma/textures/entity/weapon2bullet.png");
+        b->texture = bulletTexture;
         app->addEntity(b);
     }
     playSound("assets/projectnuma/sounds/item/weapon2.wav");
@@ -428,13 +428,13 @@ void PlayerWeapon3::fire(Entity* owner, double degree)
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
     Bullet* b = new Bullet(
-            owner, bulletDamage, 100, 20,
+            owner, bulletDamage, 200, 20,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
     b->hp = 10;
     b->move(0, -b->height / 2);
-    b->texture = getTexture("assets/projectnuma/textures/entity/weapon3bullet.png");
+    b->texture = bulletTexture;
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon3.wav");
 }
@@ -451,7 +451,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
             bulletSpeed, degree
     );
     b->hp = 100;
-    b->texture = getTexture("assets/projectnuma/textures/entity/weapon0ebullet.png");
+    b->texture = bulletTexture;
     b->customTickAfter = [](Entity* self) {
         self->hp--;
     };
