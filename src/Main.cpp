@@ -1,17 +1,15 @@
 #include "ProjectNuma.h"
 #include "CommonUtil.h"
 #include "RandomUtil.h"
-#include "RenderUtil.h"
+#include "RenderManager.h"
 #include "SoundManager.h"
 #include "SessionUtil.h"
 
 // import static
-#define loadSound SoundManager.loadSound
 #define playSound SoundManager.playSound
-#define loadMusic SoundManager.loadMusic
 #define setBGM SoundManager.setBGM
+#define placeTexture RenderManager.placeTexture
 
-static SDL_Texture* PLACEHOLDER_TEXTURE;
 static App* app;
 static Session session;
 static Random r;
@@ -128,14 +126,7 @@ public:
 class App
 {
 private:
-    const int
-            RENDERER_FLAGS = SDL_RENDERER_ACCELERATED,
-            WINDOW_FLAGS = 0;
-
-    SDL_Renderer* renderer = null;
-    SDL_Window* window = null;
     shared_ptr<Player> player;
-    std::map<const char*, SDL_Texture*> textures;
     std::map<const char*, Weapon*> weapons;
     std::list<shared_ptr<Entity>> entities;
     std::list<shared_ptr<Entity>> environment;
@@ -149,10 +140,6 @@ public:
     void shutdown();
 
     SDL_Renderer* getRenderer();
-
-    SDL_Texture* loadTexture(const char* fileName);
-
-    SDL_Texture* getTexture(const char* name);
 
     Weapon* getWeapon(const char* name);
 
@@ -327,28 +314,10 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
 void App::startup()
 {
     app = this;
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing");
-    // initialize sdl
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        printf("Couldn't initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
-    window = SDL_CreateWindow("App", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
-                              WINDOW_HEIGHT, WINDOW_FLAGS);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-    renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
-    // initialize textures
-    loadTexture("assets/projectnuma/textures/misc/black.png");
-    PLACEHOLDER_TEXTURE = loadTexture("assets/projectnuma/textures/misc/placeholder.png");
-    // initialize sound
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is coming up. Please wait");
+    RenderManager.init();
     SoundManager.init();
-    for (const char* a: soundFiles)
-        loadSound(a);
-    for (const char* a: musicFiles)
-        loadMusic(a);
-    setBGM("assets/projectnuma/sounds/music/test.ogg");
+    setBGM("assets/projectnuma/sounds/music/game/0.ogg");
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
     weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
@@ -358,10 +327,10 @@ void App::startup()
     addEntity(player.get());
     // load session
     session.load();
-    player->maxHp=session.hp;
-    player->hp=session.hp;
+    player->maxHp = session.hp;
+    player->hp = session.hp;
     // completed
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialization completed. Entering main loop");
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready. Entering main loop");
     mainTickLoop();
 }
 
@@ -375,7 +344,7 @@ void App::shutdown()
     SDL_DestroyWindow(window);
     SDL_Quit();
     // save session
-    session.hp=player->maxHp;
+    session.hp = player->maxHp;
     session.save();
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Completed");
     exit(0);
@@ -384,22 +353,6 @@ void App::shutdown()
 SDL_Renderer* App::getRenderer()
 {
     return renderer;
-}
-
-SDL_Texture* App::loadTexture(const char* fileName)
-{
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
-    SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
-    if (texture == null) throw std::runtime_error(string("Texture not found: ").append(fileName));
-    textures[fileName] = texture;
-    return texture;
-}
-
-SDL_Texture* App::getTexture(const char* name)
-{
-    SDL_Texture* t = textures[name];
-    if (t == null) throw std::runtime_error(string("Texture not found: ").append(name));
-    return t;
 }
 
 Weapon* App::getWeapon(const char* name)
@@ -488,7 +441,7 @@ void App::mainTickLoop()
         // place textures
         for (const shared_ptr<Entity>& e: entities)
         {
-            if (!e->isDead) RenderUtil.placeTexture(renderer, e->texture, e->x, e->y, e->width, e->height);
+            if (!e->isDead) placeTexture(e->texture, e->x, e->y, e->width, e->height);
         }
         SDL_RenderPresent(renderer);
         // clean up
@@ -595,7 +548,7 @@ Enemy0::Enemy0() : Entity()
     };
     onDeath = [](Entity* self) {
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
-            playSound("assets/projectnuma/sounds/entity/enemyDie.wav");
+            playSound("assets/projectnuma/sounds/entity/hit.wav");
         session.credit++;
     };
 }

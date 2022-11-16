@@ -26,7 +26,7 @@ typedef char EntityType;
 #define SIDE_ENVIRONMENT 2
 #define SIDE_NONE 2147483647
 
-const char* soundFiles[]={
+const char* soundFiles[] = {
         "assets/projectnuma/sounds/ambient/click0.wav",
         "assets/projectnuma/sounds/ambient/explode0.wav",
         "assets/projectnuma/sounds/ambient/explode1.wav",
@@ -47,8 +47,15 @@ const char* soundFiles[]={
         "assets/projectnuma/sounds/item/weapon3.wav"
 };
 
-const char* musicFiles[]={
-        "assets/projectnuma/sounds/music/test.ogg"
+const char* musicFiles[] = {
+        "assets/projectnuma/sounds/music/test.ogg",
+        "assets/projectnuma/sounds/music/menu/0.ogg",
+        "assets/projectnuma/sounds/music/game/0.ogg"
+};
+
+const char* textureFiles[] = {
+        "assets/projectnuma/textures/misc/placeholder.png",
+        "assets/projectnuma/textures/misc/black.png"
 };
 
 class App;

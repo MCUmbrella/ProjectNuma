@@ -16,7 +16,7 @@ static class
 public:
     static Mix_Chunk* loadSound(const char* fileName)
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_AUDIO, "Loading sound: %s", fileName);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName);
         Mix_Chunk* s = Mix_LoadWAV(fileName);
         if (s == null)throw std::runtime_error(std::string("Sound not found: ").append(fileName));
         sounds.emplace(fileName, s);
@@ -41,7 +41,7 @@ public:
 
     static Mix_Music* loadMusic(const char* fileName)
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_AUDIO, "Loading music: %s", fileName);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName);
         Mix_Music* m = Mix_LoadMUS(fileName);
         if (m == null)throw std::runtime_error(std::string("Music not found: ").append(fileName));
         musics.emplace(fileName, m);
@@ -56,11 +56,10 @@ public:
 
     static void stopBGM()
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_AUDIO, "Stopping BGM");
-        Mix_HaltMusic();
         if (bgm != null)
         {
-            Mix_FreeMusic(bgm);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Stopping BGM");
+            Mix_HaltMusic();
             bgm = null;
         }
     }
@@ -75,6 +74,7 @@ public:
     static void setBGM(const char* name)
     {
         setBGM(getMusic(name));
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "BGM set to %s", name);
     }
 
     static void init()
@@ -84,7 +84,13 @@ public:
             printf("Couldn't initialize SDL Mixer\n");
             exit(1);
         }
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
         Mix_AllocateChannels(64);
+        for (const char* a: soundFiles)
+            loadSound(a);
+        for (const char* a: musicFiles)
+            loadMusic(a);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager initialization completed");
     }
 } SoundManager;
 
