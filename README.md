@@ -24,19 +24,19 @@ You're expected to experience various bugs or missing features.
 ### Enemy 0
 - Name: `Turret`
 - Size: `32 * 24`
-- Speed: `2±1`X, `±0.5`Y
+- Speed: `2 ± 1`X, `±0.5`Y
 - HP: `5`
 - Weapon: `#0E`
 ### Enemy 1
 - Name: `Fighter`
 - Size: `40 * 32`
-- Speed: `1±0.1`X, `±0.1`Y
+- Speed: `1 ± 0.1`X, `±0.1`Y
 - HP: `30`
-- Weapon: `#1`
+- Weapon: `#1E`
 ### Enemy 2
 - Name: `Armored fighter`
 - Size: `60 * 40`
-- Speed: `1±0.1`X, `±0.1`Y
+- Speed: `1 ± 0.1`X, `±0.1`Y
 - HP: `60`
 - Weapon: `#1E`
 ### Enemy 3
