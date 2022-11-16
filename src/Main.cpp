@@ -46,9 +46,9 @@ public:
 
     void tick();
 
-    void (* customTickBefore)(Entity* self) = null;
+    void (* beforeTick)(Entity* self) = null;
 
-    void (* customTickAfter)(Entity* self) = null;
+    void (* afterTick)(Entity* self) = null;
 
     void (* onSpawn)(Entity* self) = null;
 
@@ -334,7 +334,7 @@ Entity* Entity::setLocation(double x1, double y1)
 void Entity::tick()
 {
     // tickBefore
-    if (customTickBefore != null) customTickBefore(this);
+    if (beforeTick != null) beforeTick(this);
     // general tick operations
     move(dx, dy);
     if (weapon != null && reloadTicks > 0) reloadTicks--;
@@ -361,8 +361,8 @@ void Entity::tick()
         if (onDeath != null) onDeath(this);
         isDead = true;
     }
-    else if (customTickAfter != null)
-        customTickAfter(this);
+    else if (afterTick != null)
+        afterTick(this);
 }
 
 // PlayerWeapon0 =======================================================================================================
@@ -452,7 +452,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
     );
     b->hp = 100;
     b->texture = bulletTexture;
-    b->customTickAfter = [](Entity* self) {
+    b->afterTick = [](Entity* self) {
         self->hp--;
     };
     app->addEntity(b);
@@ -472,7 +472,7 @@ void EnemyWeapon1::fire(Entity* owner, double degree)
     );
     b->hp = 100;
     b->texture = bulletTexture;
-    b->customTickAfter = [](Entity* self) {
+    b->afterTick = [](Entity* self) {
         self->hp--;
     };
     app->addEntity(b);
@@ -492,7 +492,7 @@ void EnemyWeapon2::fire(Entity* owner, double degree)
     );
     b->hp = 100;
     b->texture = bulletTexture;
-    b->customTickAfter = [](Entity* self) {
+    b->afterTick = [](Entity* self) {
         self->hp--;
     };
     app->addEntity(b);
@@ -683,7 +683,7 @@ Player::Player()
     y = WINDOW_HEIGHT / 2 - height / 2;
     texture = getTexture("assets/projectnuma/textures/entity/player.png");
     name = "Player";
-    customTickBefore = [](Entity* self) {
+    beforeTick = [](Entity* self) {
         Player* p = (Player*) self;
         if (p->isDead)
         {
@@ -738,7 +738,7 @@ Player::Player()
                 }
         }
     };
-    customTickAfter = [](Entity* self) {
+    afterTick = [](Entity* self) {
         self->setLocation(
                 self->x + self->width > WINDOW_WIDTH ? WINDOW_WIDTH - self->width :
                 self->x < 0 ? 0 :
@@ -790,7 +790,7 @@ Enemy0::Enemy0() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy0.png");
     weapon = app->getWeapon("EnemyWeapon0");
     name = "Turret";
-    customTickAfter = [](Entity* self) {
+    afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
@@ -829,7 +829,7 @@ Enemy1::Enemy1() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy1.png");
     weapon = app->getWeapon("EnemyWeapon0");
     name = "Enemy Fighter";
-    customTickAfter = [](Entity* self) {
+    afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
@@ -868,7 +868,7 @@ Enemy2::Enemy2() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy2.png");
     weapon = app->getWeapon("EnemyWeapon0");
     name = "Enemy armored fighter";
-    customTickAfter = [](Entity* self) {
+    afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
@@ -909,7 +909,7 @@ Enemy3::Enemy3() : Entity()
     onSpawn = [](Entity* self) {
         playSound("assets/projectnuma/sounds/ambient/warn.wav");
     };
-    customTickAfter = [](Entity* self) {
+    afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
@@ -950,7 +950,7 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
     this->height = height;
     texture = PLACEHOLDER_TEXTURE;
     name = "Bullet of " + owner->name;
-    customTickBefore = [](Entity* self) {
+    beforeTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y + self->height <= 0 || self->x >= WINDOW_WIDTH || self->y >= WINDOW_HEIGHT)
         {
             self->hp = 0;
