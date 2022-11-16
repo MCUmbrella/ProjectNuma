@@ -674,8 +674,7 @@ Player::Player()
     type = ENTITY_TYPE_PLAYER;
     isControllable = true;
     side = SIDE_PLAYER;
-    maxHp = 100;
-    hp = 50;
+    maxHp = hp = 50;
     speed = 6;
     width = 40;
     height = 32;
@@ -963,7 +962,7 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
 int main(int argc, char** argv)
 {
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
-    cerr << endl << "ProjectNuma Pre-release 0.0.1" << endl
+    cerr << endl << "ProjectNuma version alpha 0.0.1" << endl
          << "Made by @MCUmbrella, licensed under MIT" << endl << endl;
     uint64_t startTime = CommonUtil.currentTimeNanos();
     (new App())->startup();
