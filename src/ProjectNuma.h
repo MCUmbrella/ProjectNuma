@@ -76,6 +76,20 @@ class Bullet;
 
 class Weapon;
 
+class PlayerWeapon0;
+
+class PlayerWeapon1;
+
+class PlayerWeapon2;
+
+class PlayerWeapon3;
+
+class EnemyWeapon0;
+
+class EnemyWeapon1;
+
+class EnemyWeapon2;
+
 #define PROJECTNUMA_PROJECTNUMA_H
 
 #endif //PROJECTNUMA_PROJECTNUMA_H

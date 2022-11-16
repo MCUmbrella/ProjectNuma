@@ -31,6 +31,7 @@ public:
 
     static void playSound(Mix_Chunk* sound)
     {
+        if (sound == null) throw std::runtime_error("Null pointer");
         Mix_PlayChannel(-1, sound, false);
     }
 
@@ -66,6 +67,7 @@ public:
 
     static void setBGM(Mix_Music* m)
     {
+        if (m == null) throw std::runtime_error("Null pointer");
         stopBGM();
         Mix_PlayMusic(m, -1);
         bgm = m;

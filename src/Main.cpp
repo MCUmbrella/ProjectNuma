@@ -62,6 +62,7 @@ class Weapon
 public:
     int bulletDamage, reloadTicks;
     double bulletSpeed;
+    string name = "(unnamed weapon)";
     SDL_Texture* bulletTexture;
 
     virtual void fire(Entity* owner, double degree) = 0;
@@ -76,9 +77,67 @@ class PlayerWeapon0 : public Weapon
 public:
     PlayerWeapon0()
     {
+        name = "Small machine gun";
         bulletSpeed = 20;
         bulletDamage = 10;
         reloadTicks = 10;
+        bulletTexture = PLACEHOLDER_TEXTURE;
+    }
+
+    void fire(Entity* owner, double degree) override;
+};
+
+/**
+ * PlayerWeapon1.class
+ * extends Weapon
+ */
+class PlayerWeapon1 : public Weapon
+{
+public:
+    PlayerWeapon1()
+    {
+        name = "Shotgun";
+        bulletSpeed = 20;
+        bulletDamage = 5;
+        reloadTicks = 20;
+        bulletTexture = PLACEHOLDER_TEXTURE;
+    }
+
+    void fire(Entity* owner, double degree) override;
+};
+
+/**
+ * PlayerWeapon2.class
+ * extends Weapon
+ */
+class PlayerWeapon2 : public Weapon
+{
+public:
+    PlayerWeapon2()
+    {
+        name = "Blaster";
+        bulletSpeed = 20;
+        bulletDamage = 20;
+        reloadTicks = 100;
+        bulletTexture = PLACEHOLDER_TEXTURE;
+    }
+
+    void fire(Entity* owner, double degree) override;
+};
+
+/**
+ * PlayerWeapon3.class
+ * extends Weapon
+ */
+class PlayerWeapon3 : public Weapon
+{
+public:
+    PlayerWeapon3()
+    {
+        name = "Laser cannon";
+        bulletSpeed = 50;
+        bulletDamage = 50;
+        reloadTicks = 60;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
 
@@ -104,17 +163,35 @@ public:
 };
 
 /**
- * PlayerWeapon1.class
+ * EnemyWeapon1.class
  * extends Weapon
  */
-class PlayerWeapon1 : public Weapon
+class EnemyWeapon1 : public Weapon //TODO
 {
 public:
-    PlayerWeapon1()
+    EnemyWeapon1()
     {
-        bulletSpeed = 20;
-        bulletDamage = 5;
-        reloadTicks = 20;
+        bulletSpeed = 10;
+        bulletDamage = 10;
+        reloadTicks = 100;
+        bulletTexture = PLACEHOLDER_TEXTURE;
+    }
+
+    void fire(Entity* owner, double degree) override;
+};
+
+/**
+ * EnemyWeapon2.class
+ * extends Weapon
+ */
+class EnemyWeapon2 : public Weapon //TODO
+{
+public:
+    EnemyWeapon2()
+    {
+        bulletSpeed = 10;
+        bulletDamage = 10;
+        reloadTicks = 100;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
 
@@ -162,6 +239,9 @@ public:
 class Player : public Entity
 {
 public:
+    double speedModifier = 1.0;
+    vector<Weapon*> currentWeapons;
+
     Player();
 };
 
@@ -173,6 +253,36 @@ class Enemy0 : public Entity
 {
 public:
     Enemy0();
+};
+
+/**
+ * Enemy1.class
+ * extends Entity
+ */
+class Enemy1 : public Entity
+{
+public:
+    Enemy1(); //TODO
+};
+
+/**
+ * Enemy2.class
+ * extends Entity
+ */
+class Enemy2 : public Entity
+{
+public:
+    Enemy2(); //TODO
+};
+
+/**
+ * Enemy3.class
+ * extends Entity
+ */
+class Enemy3 : public Entity
+{
+public:
+    Enemy3(); //TODO
 };
 
 /**
@@ -259,23 +369,81 @@ void Entity::tick()
 
 void PlayerWeapon0::fire(Entity* owner, double degree)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Default weapon fire");
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
     degree += r.nextDouble(6.0) - 3.0;
     Bullet* b = new Bullet(
             owner, bulletDamage, 8, 8,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
+    b->move(0, -b->height / 2);
     b->texture = bulletTexture;
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon0.wav");
+}
+
+// PlayerWeapon1 =======================================================================================================
+
+void PlayerWeapon1::fire(Entity* owner, double degree)
+{
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
+    degree += r.nextDouble(6.0) - 3.0;
+    for (int i = -2; i != 3; i++)
+    {
+        Bullet* b = new Bullet(
+                owner, bulletDamage, 8, 8,
+                owner->x + owner->width / 2, owner->y + owner->height / 2,
+                bulletSpeed, degree - i * 3
+        );
+        b->move(0, -b->height / 2);
+        b->texture = bulletTexture;
+        app->addEntity(b);
+    }
+    playSound("assets/projectnuma/sounds/item/weapon1.wav");
+}
+
+// PlayerWeapon2 =======================================================================================================
+
+void PlayerWeapon2::fire(Entity* owner, double degree)
+{
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
+    degree += r.nextDouble(10.0) - 5.0;
+    for (int i = 0; i != 36; i++)
+    {
+        Bullet* b = new Bullet(
+                owner, bulletDamage, 16, 16,
+                owner->x + owner->width / 2, owner->y + owner->height / 2,
+                bulletSpeed, degree - i * 10
+        );
+        b->move(-b->width / 2, -b->height / 2);
+        b->texture = bulletTexture;
+        app->addEntity(b);
+    }
+    playSound("assets/projectnuma/sounds/item/weapon2.wav");
+}
+
+// PlayerWeapon3 =======================================================================================================
+
+void PlayerWeapon3::fire(Entity* owner, double degree)
+{
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
+    Bullet* b = new Bullet(
+            owner, bulletDamage, 50, 20,
+            owner->x + owner->width / 2, owner->y + owner->height / 2,
+            bulletSpeed, degree
+    );
+    b->hp = 10;
+    b->move(0, -b->height / 2);
+    b->texture = bulletTexture;
+    app->addEntity(b);
+    playSound("assets/projectnuma/sounds/item/weapon3.wav");
 }
 
 // EnemyWeapon0 ========================================================================================================
 
 void EnemyWeapon0::fire(Entity* owner, double degree)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy default weapon fire");
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy weapon 0 fire");
     degree += r.nextDouble(2.0) - 1.0;
     Bullet* b = new Bullet(
             owner, bulletDamage, 8, 8,
@@ -291,23 +459,44 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
     playSound("assets/projectnuma/sounds/item/weapon0e.wav");
 }
 
-// PlayerWeapon1 =======================================================================================================
+// EnemyWeapon1 ========================================================================================================
 
-void PlayerWeapon1::fire(Entity* owner, double degree)
+void EnemyWeapon1::fire(Entity* owner, double degree)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Weapon 1 fire");
-    degree += r.nextDouble(6.0) - 3.0;
-    for (int i = -2; i != 3; i++)
-    {
-        Bullet* b = new Bullet(
-                owner, bulletDamage, 8, 8,
-                owner->x + owner->width / 2, owner->y + owner->height / 2,
-                bulletSpeed, degree - i * 3
-        );
-        b->texture = bulletTexture;
-        app->addEntity(b);
-    }
-    playSound("assets/projectnuma/sounds/item/weapon1.wav");
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy weapon 1 fire");
+    degree += r.nextDouble(2.0) - 1.0;
+    Bullet* b = new Bullet(
+            owner, bulletDamage, 8, 8,
+            owner->x + owner->width / 2, owner->y + owner->height / 2,
+            bulletSpeed, degree
+    );
+    b->hp = 100;
+    b->texture = bulletTexture;
+    b->customTickAfter = [](Entity* self) {
+        self->hp--;
+    };
+    app->addEntity(b);
+    playSound("assets/projectnuma/sounds/item/weapon1e.wav");
+}
+
+// EnemyWeapon2 ========================================================================================================
+
+void EnemyWeapon2::fire(Entity* owner, double degree)
+{
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy weapon 2 fire");
+    degree += r.nextDouble(2.0) - 1.0;
+    Bullet* b = new Bullet(
+            owner, bulletDamage, 8, 8,
+            owner->x + owner->width / 2, owner->y + owner->height / 2,
+            bulletSpeed, degree
+    );
+    b->hp = 100;
+    b->texture = bulletTexture;
+    b->customTickAfter = [](Entity* self) {
+        self->hp--;
+    };
+    app->addEntity(b);
+    playSound("assets/projectnuma/sounds/item/weapon2e.wav");
 }
 
 // App =================================================================================================================
@@ -321,13 +510,17 @@ void App::startup()
     setBGM("assets/projectnuma/sounds/music/game/0.ogg");
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
-    weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
     weapons.emplace("PlayerWeapon1", new PlayerWeapon1());
+    weapons.emplace("PlayerWeapon2", new PlayerWeapon2());
+    weapons.emplace("PlayerWeapon3", new PlayerWeapon3());
+    weapons.emplace("EnemyWeapon0", new EnemyWeapon0());
+    weapons.emplace("EnemyWeapon1", new EnemyWeapon1());
+    weapons.emplace("EnemyWeapon2", new EnemyWeapon2());
+    // load session
+    session.load();
     // initialize player
     player = make_shared<Player>(Player());
     addEntity(player.get());
-    // load session
-    session.load();
     player->maxHp = session.hp;
     player->hp = session.hp;
     // completed
@@ -466,33 +659,60 @@ Player::Player()
     x = 100;
     y = WINDOW_HEIGHT / 2 - height / 2;
     texture = PLACEHOLDER_TEXTURE;
-    weapon = app->getWeapon("PlayerWeapon0");
     name = "Player";
     customTickBefore = [](Entity* self) {
-        if (self->isDead)
+        Player* p = (Player*) self;
+        if (p->isDead)
         {
-            self->hp++;
-            if (self->hp == self->maxHp)
+            p->hp++;
+            if (p->hp == p->maxHp)
             {
-                self->isDead = false;
-                self->x = 100;
-                self->y = WINDOW_HEIGHT / 2 - self->height / 2;
+                p->isDead = false;
+                p->x = 100;
+                p->y = WINDOW_HEIGHT / 2 - p->height / 2;
             }
             return;
         }
-        self->dx = self->dy = 0;
+        p->dx = p->dy = 0;
+        // press W A S D to move, right-Shift to move faster, right-Ctrl to move slower
+        if (app->pressedKey[SDL_SCANCODE_RSHIFT])
+            p->speedModifier = 1.5;
+        else if (app->pressedKey[SDL_SCANCODE_RCTRL])
+            p->speedModifier = 0.7;
         if (app->pressedKey[SDL_SCANCODE_W])
-            self->dy = -self->speed;
+            p->dy = -p->speed * p->speedModifier;
         if (app->pressedKey[SDL_SCANCODE_A])
-            self->dx = -self->speed;
+            p->dx = -p->speed * p->speedModifier;
         if (app->pressedKey[SDL_SCANCODE_S])
-            self->dy = self->speed;
+            p->dy = p->speed * p->speedModifier;
         if (app->pressedKey[SDL_SCANCODE_D])
-            self->dx = self->speed;
-        if (self->weapon != null && app->pressedKey[SDL_SCANCODE_SPACE] && self->reloadTicks == 0)
+            p->dx = p->speed * p->speedModifier;
+        // press SPACE to fire
+        if (p->weapon != null && app->pressedKey[SDL_SCANCODE_SPACE] && p->reloadTicks == 0)
         {
-            self->weapon->fire(self, 0);
-            self->reloadTicks = self->weapon->reloadTicks;
+            p->weapon->fire(p, 0);
+            p->reloadTicks = p->weapon->reloadTicks;
+        }
+        // press right-Alt to switch weapon
+        if (app->pressedKey[SDL_SCANCODE_RALT] && p->reloadTicks == 0)
+        {
+            for (int i = 0; i != p->currentWeapons.size(); i++)
+                if (p->currentWeapons[i] == p->weapon)
+                {
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Switch weapon");
+                    if (i == p->currentWeapons.size() - 1)
+                    {
+                        p->weapon = p->currentWeapons[0];
+                        p->reloadTicks = p->weapon->reloadTicks;
+                    }
+                    else
+                    {
+                        p->weapon = p->currentWeapons[i + 1];
+                        p->reloadTicks = p->weapon->reloadTicks;
+                    }
+                    playSound("assets/projectnuma/sounds/ambient/weaponLoad.wav");
+                    break;
+                }
         }
     };
     customTickAfter = [](Entity* self) {
@@ -504,6 +724,7 @@ Player::Player()
                 self->y < 0 ? 0 :
                 self->y
         );
+        ((Player*) self)->speedModifier = 1.0;
     };
     onSpawn = [](Entity* self) {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
@@ -511,6 +732,21 @@ Player::Player()
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
     };
+    // load unlocked weapons from session file
+    if (1 & session.unlockedWeapons)
+        currentWeapons.emplace_back(app->getWeapon("PlayerWeapon0"));
+    if (2 & session.unlockedWeapons)
+        currentWeapons.emplace_back(app->getWeapon("PlayerWeapon1"));
+    if (4 & session.unlockedWeapons)
+        currentWeapons.emplace_back(app->getWeapon("PlayerWeapon2"));
+    if (8 & session.unlockedWeapons)
+        currentWeapons.emplace_back(app->getWeapon("PlayerWeapon3"));
+    if (currentWeapons.empty())
+    {
+        session.unlockedWeapons = 1;
+        weapon = app->getWeapon("PlayerWeapon0");
+    }
+    else weapon = currentWeapons[0];
 }
 
 // Enemy0 ==============================================================================================================
@@ -583,9 +819,11 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
 
 int main(int argc, char** argv)
 {
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
     cerr << endl << "ProjectNuma Pre-release 0.0.1" << endl
          << "Made by @MCUmbrella, licensed under MIT" << endl << endl;
     uint64_t startTime = CommonUtil.currentTimeNanos();
     (new App())->startup();
-    cerr << endl << "Uptime: " << (long double)(CommonUtil.currentTimeNanos() - startTime) / 1000000000.0L << " s" << endl;
+    cerr << endl << "Uptime: " << (long double) (CommonUtil.currentTimeNanos() - startTime) / 1000000000.0L << " s"
+         << endl;
 }

@@ -12,7 +12,7 @@ class Session
 public:
     const char* FILE_NAME = "session.dat";
     int hp = 50;
-    unsigned long long credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
+    uint64_t credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
 
     void load()
     {
@@ -22,7 +22,7 @@ public:
         {
             f >> hp >> credit >> unlockedWeapons >> unlockedLevels;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                        "Session file loaded\n\thp: %d\n\tcredit: %llu\n\tunlockedWeapons: %llu\n\tunlockedLevels: %llu",
+                        "Session file loaded\n\thp: %d\n\tcredit: %lu\n\tunlockedWeapons: %lu\n\tunlockedLevels: %lu",
                         hp, credit, unlockedWeapons, unlockedLevels);
         }
         else SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Session file not found or failed to open");

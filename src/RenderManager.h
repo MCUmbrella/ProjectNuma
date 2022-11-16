@@ -20,6 +20,7 @@ static class
 public:
     static int getTextureWidth(SDL_Texture* texture)
     {
+        if (texture == null) throw std::runtime_error("Null pointer");
         int w;
         SDL_QueryTexture(texture, null, null, &w, null);
         return w;
@@ -27,6 +28,7 @@ public:
 
     static int getTextureHeight(SDL_Texture* texture)
     {
+        if (texture == null) throw std::runtime_error("Null pointer");
         int h;
         SDL_QueryTexture(texture, null, null, null, &h);
         return h;
@@ -50,6 +52,7 @@ public:
 
     static void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
     {
+        if (texture == null) throw std::runtime_error("Null pointer");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
@@ -60,6 +63,7 @@ public:
 
     static void placeTexture(SDL_Texture* texture, int x, int y)
     {
+        if (texture == null) throw std::runtime_error("Null pointer");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
