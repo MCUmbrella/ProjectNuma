@@ -9,6 +9,7 @@
 // import static
 #define playSound SoundManager.playSound
 #define setBGM SoundManager.setBGM
+#define getTexture RenderManager.getTexture
 #define placeTexture RenderManager.placeTexture
 
 static App* app;
@@ -154,7 +155,7 @@ public:
     EnemyWeapon0()
     {
         bulletSpeed = 10;
-        bulletDamage = 10;
+        bulletDamage = 5;
         reloadTicks = 100;
         bulletTexture = PLACEHOLDER_TEXTURE;
     }
@@ -262,7 +263,7 @@ public:
 class Enemy1 : public Entity
 {
 public:
-    Enemy1(); //TODO
+    Enemy1();
 };
 
 /**
@@ -272,7 +273,7 @@ public:
 class Enemy2 : public Entity
 {
 public:
-    Enemy2(); //TODO
+    Enemy2();
 };
 
 /**
@@ -282,7 +283,7 @@ public:
 class Enemy3 : public Entity
 {
 public:
-    Enemy3(); //TODO
+    Enemy3();
 };
 
 /**
@@ -346,7 +347,6 @@ void Entity::tick()
                     e->x, e->y, e->width, e->height, x, y, width, height
             ))
             {
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s collision with %s", e->name.c_str(), name.c_str());
                 this->hp = 0;
                 e->hp -= ((Bullet*) this)->damage;
                 playSound("assets/projectnuma/sounds/entity/hit.wav");
@@ -377,7 +377,7 @@ void PlayerWeapon0::fire(Entity* owner, double degree)
             bulletSpeed, degree
     );
     b->move(0, -b->height / 2);
-    b->texture = bulletTexture;
+    b->texture = getTexture("assets/projectnuma/textures/entity/weapon0bullet.png");
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon0.wav");
 }
@@ -396,7 +396,7 @@ void PlayerWeapon1::fire(Entity* owner, double degree)
                 bulletSpeed, degree - i * 3
         );
         b->move(0, -b->height / 2);
-        b->texture = bulletTexture;
+        b->texture = getTexture("assets/projectnuma/textures/entity/weapon1bullet.png");
         app->addEntity(b);
     }
     playSound("assets/projectnuma/sounds/item/weapon1.wav");
@@ -416,7 +416,7 @@ void PlayerWeapon2::fire(Entity* owner, double degree)
                 bulletSpeed, degree - i * 10
         );
         b->move(-b->width / 2, -b->height / 2);
-        b->texture = bulletTexture;
+        b->texture = getTexture("assets/projectnuma/textures/entity/weapon2bullet.png");
         app->addEntity(b);
     }
     playSound("assets/projectnuma/sounds/item/weapon2.wav");
@@ -428,13 +428,13 @@ void PlayerWeapon3::fire(Entity* owner, double degree)
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
     Bullet* b = new Bullet(
-            owner, bulletDamage, 50, 20,
+            owner, bulletDamage, 100, 20,
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
     b->hp = 10;
     b->move(0, -b->height / 2);
-    b->texture = bulletTexture;
+    b->texture = getTexture("assets/projectnuma/textures/entity/weapon3bullet.png");
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon3.wav");
 }
@@ -451,7 +451,7 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
             bulletSpeed, degree
     );
     b->hp = 100;
-    b->texture = bulletTexture;
+    b->texture = getTexture("assets/projectnuma/textures/entity/weapon0ebullet.png");
     b->customTickAfter = [](Entity* self) {
         self->hp--;
     };
@@ -620,7 +620,30 @@ void App::mainTickLoop()
             }
         }
         // randomly add enemies
-        if (r.nextInt(100) == 0) addEntity((new Enemy0())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 24)));
+        if (r.nextInt(200) == 0)
+            switch (r.nextInt(4))
+            {
+                case 0:
+                {
+                    addEntity((new Enemy0())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 24)));
+                    break;
+                }
+                case 1:
+                {
+                    addEntity((new Enemy1())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 32)));
+                    break;
+                }
+                case 2:
+                {
+                    addEntity((new Enemy2())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 40)));
+                    break;
+                }
+                case 3:
+                {
+                    addEntity((new Enemy3())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 160)));
+                    break;
+                }
+            }
         // tick entities
         for (const shared_ptr<Entity>& e: entities)
         {
@@ -629,7 +652,7 @@ void App::mainTickLoop()
             else if (e->type == ENTITY_TYPE_PLAYER) e->tick();
         }
         // refresh screen
-        SDL_SetRenderDrawColor(renderer, 64, 64, 128, 255);
+        SDL_SetRenderDrawColor(renderer, 32, 32, 64, 255);
         SDL_RenderClear(renderer);
         // place textures
         for (const shared_ptr<Entity>& e: entities)
@@ -658,7 +681,7 @@ Player::Player()
     height = 32;
     x = 100;
     y = WINDOW_HEIGHT / 2 - height / 2;
-    texture = PLACEHOLDER_TEXTURE;
+    texture = getTexture("assets/projectnuma/textures/entity/player.png");
     name = "Player";
     customTickBefore = [](Entity* self) {
         Player* p = (Player*) self;
@@ -755,8 +778,7 @@ Enemy0::Enemy0() : Entity()
 {
     type = ENTITY_TYPE_ENEMY;
     side = SIDE_ENEMY;
-    maxHp = 10;
-    hp = 10;
+    maxHp = hp = 5;
     reloadTicks = 10;
     x = WINDOW_WIDTH;
     y = 450;
@@ -765,9 +787,9 @@ Enemy0::Enemy0() : Entity()
     dy = r.nextDouble(1.0) - 0.5;
     width = 32;
     height = 24;
-    texture = PLACEHOLDER_TEXTURE;
+    texture = getTexture("assets/projectnuma/textures/entity/enemy0.png");
     weapon = app->getWeapon("EnemyWeapon0");
-    name = "Enemy0";
+    name = "Turret";
     customTickAfter = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
@@ -784,8 +806,129 @@ Enemy0::Enemy0() : Entity()
     };
     onDeath = [](Entity* self) {
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
+        {
             playSound("assets/projectnuma/sounds/entity/hit.wav");
-        session.credit++;
+            session.credit++;
+        }
+    };
+}
+
+Enemy1::Enemy1() : Entity()
+{
+    type = ENTITY_TYPE_ENEMY;
+    side = SIDE_ENEMY;
+    maxHp = hp = 30;
+    reloadTicks = 10;
+    x = WINDOW_WIDTH;
+    y = 450;
+    speed = 1;
+    dx = -speed + r.nextDouble(0.2) - 0.1;
+    dy = r.nextDouble(0.2) - 0.1;
+    width = 40;
+    height = 32;
+    texture = getTexture("assets/projectnuma/textures/entity/enemy1.png");
+    weapon = app->getWeapon("EnemyWeapon0");
+    name = "Enemy Fighter";
+    customTickAfter = [](Entity* self) {
+        if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
+        else if (self->reloadTicks <= 0)
+        {
+            double deg = CommonUtil.getDegreeBeteween(
+                    self->x + self->width / 2,
+                    self->y + self->height / 2,
+                    app->getPlayer()->x + app->getPlayer()->width / 2,
+                    app->getPlayer()->y + app->getPlayer()->height / 2
+            );
+            self->weapon->fire(self, deg);
+            self->reloadTicks = self->weapon->reloadTicks;
+        }
+    };
+    onDeath = [](Entity* self) {
+        if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
+        {
+            playSound("assets/projectnuma/sounds/entity/enemyDie.wav");
+            session.credit += 5;
+        }
+    };
+}
+
+Enemy2::Enemy2() : Entity()
+{
+    type = ENTITY_TYPE_ENEMY;
+    side = SIDE_ENEMY;
+    maxHp = hp = 60;
+    reloadTicks = 10;
+    x = WINDOW_WIDTH;
+    y = 450;
+    speed = 1;
+    dx = -speed + r.nextDouble(0.2) - 0.1;
+    dy = r.nextDouble(0.2) - 0.1;
+    width = 60;
+    height = 40;
+    texture = getTexture("assets/projectnuma/textures/entity/enemy2.png");
+    weapon = app->getWeapon("EnemyWeapon0");
+    name = "Enemy armored fighter";
+    customTickAfter = [](Entity* self) {
+        if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
+        else if (self->reloadTicks <= 0)
+        {
+            double deg = CommonUtil.getDegreeBeteween(
+                    self->x + self->width / 2,
+                    self->y + self->height / 2,
+                    app->getPlayer()->x + app->getPlayer()->width / 2,
+                    app->getPlayer()->y + app->getPlayer()->height / 2
+            );
+            self->weapon->fire(self, deg);
+            self->reloadTicks = self->weapon->reloadTicks;
+        }
+    };
+    onDeath = [](Entity* self) {
+        if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
+        {
+            playSound("assets/projectnuma/sounds/entity/enemyDie.wav");
+            session.credit += 10;
+        }
+    };
+}
+
+Enemy3::Enemy3() : Entity()
+{
+    type = ENTITY_TYPE_ENEMY;
+    side = SIDE_ENEMY;
+    maxHp = hp = 750;
+    reloadTicks = 100;
+    x = WINDOW_WIDTH;
+    y = 450;
+    speed = 0.25;
+    dx = -speed;
+    width = 256;
+    height = 160;
+    texture = getTexture("assets/projectnuma/textures/entity/enemy3.png");
+    weapon = app->getWeapon("EnemyWeapon0");
+    name = "Enemy cruiser";
+    onSpawn = [](Entity* self) {
+        playSound("assets/projectnuma/sounds/ambient/warn.wav");
+    };
+    customTickAfter = [](Entity* self) {
+        if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
+        else if (self->reloadTicks <= 0)
+        {
+            double deg = CommonUtil.getDegreeBeteween(
+                    self->x + self->width / 2,
+                    self->y + self->height / 2,
+                    app->getPlayer()->x + app->getPlayer()->width / 2,
+                    app->getPlayer()->y + app->getPlayer()->height / 2
+            );
+            self->weapon->fire(self, deg);
+            self->reloadTicks = self->weapon->reloadTicks;
+        }
+    };
+    onDeath = [](Entity* self) {
+        if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
+        {
+            playSound("assets/projectnuma/sounds/entity/bossDie.wav");
+            session.credit += 50;
+        }
     };
 }
 

@@ -55,7 +55,17 @@ const char* musicFiles[] = {
 
 const char* textureFiles[] = {
         "assets/projectnuma/textures/misc/placeholder.png",
-        "assets/projectnuma/textures/misc/black.png"
+        "assets/projectnuma/textures/misc/black.png",
+        "assets/projectnuma/textures/entity/player.png",
+        "assets/projectnuma/textures/entity/enemy0.png",
+        "assets/projectnuma/textures/entity/enemy1.png",
+        "assets/projectnuma/textures/entity/enemy2.png",
+        "assets/projectnuma/textures/entity/enemy3.png",
+        "assets/projectnuma/textures/entity/weapon0bullet.png",
+        "assets/projectnuma/textures/entity/weapon1bullet.png",
+        "assets/projectnuma/textures/entity/weapon2bullet.png",
+        "assets/projectnuma/textures/entity/weapon3bullet.png",
+        "assets/projectnuma/textures/entity/weapon0ebullet.png",
 };
 
 class App;
