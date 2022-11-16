@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ProjectNuma.h"
 #include "CommonUtil.h"
 #include "RandomUtil.h"
@@ -336,18 +337,14 @@ void App::startup()
 
 void App::shutdown()
 {
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is coming down. Please wait");
     // shutdown sdl
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutting down");
-    IMG_Quit();
-    Mix_Quit();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    SoundManager.shutdown();
+    RenderManager.shutdown();
     // save session
     session.hp = player->maxHp;
     session.save();
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Completed");
-    exit(0);
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutdown completed");
 }
 
 SDL_Renderer* App::getRenderer()
@@ -407,7 +404,10 @@ void App::mainTickLoop()
             switch (event.type)
             {
                 case SDL_QUIT:
+                {
                     shutdown();
+                    return;
+                }
                 case SDL_KEYDOWN:
                 {
                     SDL_KeyboardEvent e = event.key;
@@ -583,6 +583,9 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
 
 int main(int argc, char** argv)
 {
-    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+    cerr << endl << "ProjectNuma Pre-release 0.0.1" << endl
+         << "Made by @MCUmbrella, licensed under MIT" << endl << endl;
+    uint64_t startTime = CommonUtil.currentTimeNanos();
     (new App())->startup();
+    cerr << endl << "Uptime: " << (long double)(CommonUtil.currentTimeNanos() - startTime) / 1000000000.0L << " s" << endl;
 }

@@ -92,6 +92,14 @@ public:
             loadMusic(a);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager initialization completed");
     }
+
+    static void shutdown()
+    {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager is being shut down now");
+        stopBGM();
+        Mix_Quit();
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager is down");
+    }
 } SoundManager;
 
 #endif //PROJECTNUMA_SOUNDMANAGER_H

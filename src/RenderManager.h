@@ -86,6 +86,16 @@ public:
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
+
+    static void shutdown()
+    {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is being shut down now");
+        IMG_Quit();
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is down");
+    }
 } RenderManager;
 
 #endif //PROJECTNUMA_RENDERMANAGER_H
