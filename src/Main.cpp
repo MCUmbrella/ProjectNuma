@@ -21,7 +21,7 @@ using namespace std;
 // CLASS DEFINITIONS START =============================================================================================
 
 /**
- * Entity.class
+ * public class Entity
  */
 class Entity
 {
@@ -56,7 +56,7 @@ public:
 };
 
 /**
- * Weapon.class
+ * public class Weapon
  */
 class Weapon
 {
@@ -70,8 +70,7 @@ public:
 };
 
 /**
- * PlayerWeapon0.class
- * extends Weapon
+ * public class PlayerWeapon0 extends Weapon
  */
 class PlayerWeapon0 : public Weapon
 {
@@ -89,8 +88,7 @@ public:
 };
 
 /**
- * PlayerWeapon1.class
- * extends Weapon
+ * public class PlayerWeapon1 extends Weapon
  */
 class PlayerWeapon1 : public Weapon
 {
@@ -108,8 +106,7 @@ public:
 };
 
 /**
- * PlayerWeapon2.class
- * extends Weapon
+ * public class PlayerWeapon2 extends Weapon
  */
 class PlayerWeapon2 : public Weapon
 {
@@ -127,8 +124,7 @@ public:
 };
 
 /**
- * PlayerWeapon3.class
- * extends Weapon
+ * public class PlayerWeapon3 extends Weapon
  */
 class PlayerWeapon3 : public Weapon
 {
@@ -146,8 +142,7 @@ public:
 };
 
 /**
- * EnemyWeapon0.class
- * extends Weapon
+ * public class EnemyWeapon0 extends Weapon
  */
 class EnemyWeapon0 : public Weapon
 {
@@ -163,9 +158,9 @@ public:
     void fire(Entity* owner, double degree) override;
 };
 
+
 /**
- * EnemyWeapon1.class
- * extends Weapon
+ * public class EnemyWeapon1 extends Weapon
  */
 class EnemyWeapon1 : public Weapon //TODO
 {
@@ -181,9 +176,9 @@ public:
     void fire(Entity* owner, double degree) override;
 };
 
+
 /**
- * EnemyWeapon2.class
- * extends Weapon
+ * public class EnemyWeapon2 extends Weapon
  */
 class EnemyWeapon2 : public Weapon //TODO
 {
@@ -200,7 +195,7 @@ public:
 };
 
 /**
- * App.class
+ * public class App
  */
 class App
 {
@@ -234,8 +229,7 @@ public:
 };
 
 /**
- * Player.class
- * extends Entity
+ * public class Player extends Entity
  */
 class Player : public Entity
 {
@@ -247,8 +241,7 @@ public:
 };
 
 /**
- * Enemy0.class
- * extends Entity
+ * public class Enemy0 extends Entity
  */
 class Enemy0 : public Entity
 {
@@ -256,9 +249,9 @@ public:
     Enemy0();
 };
 
+
 /**
- * Enemy1.class
- * extends Entity
+ * public class Enemy1 extends Entity
  */
 class Enemy1 : public Entity
 {
@@ -266,9 +259,9 @@ public:
     Enemy1();
 };
 
+
 /**
- * Enemy2.class
- * extends Entity
+ * public class Enemy2 extends Entity
  */
 class Enemy2 : public Entity
 {
@@ -276,9 +269,9 @@ public:
     Enemy2();
 };
 
+
 /**
- * Enemy3.class
- * extends Entity
+ * public class Enemy3 extends Entity
  */
 class Enemy3 : public Entity
 {
@@ -286,9 +279,9 @@ public:
     Enemy3();
 };
 
+
 /**
- * Enemy0.class
- * extends Entity
+ * public class Bullet extends Entity
  */
 class Bullet : public Entity
 {
