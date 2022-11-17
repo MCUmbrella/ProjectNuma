@@ -6,17 +6,29 @@
 #define PROJECTNUMA_RENDERMANAGER_H
 
 #include <SDL_render.h>
+#include <SDL_ttf.h>
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
 static std::map<const char*, SDL_Texture*> textures;
 static SDL_Renderer* renderer = null;
 static SDL_Window* window = null;
+static TTF_Font* font = null;
 const static int
         RENDERER_FLAGS = SDL_RENDERER_ACCELERATED,
         WINDOW_FLAGS = 0;
 
 static class
 {
+private:
+    static SDL_Texture* surfaceToTexture(SDL_Surface* surface, bool destroySurface)
+    {
+        SDL_Texture* texture;
+        texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (destroySurface)
+            SDL_FreeSurface(surface);
+        return texture;
+    }
+
 public:
     static int getTextureWidth(SDL_Texture* texture)
     {
@@ -71,6 +83,18 @@ public:
         SDL_RenderCopy(renderer, texture, null, &destRect);
     }
 
+    static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    {
+        SDL_Color color;
+        color.r = r;
+        color.g = g;
+        color.b = b;
+        color.a = a;
+        SDL_Surface* surface;
+        surface = TTF_RenderUTF8_Blended(font, text, color);
+        return surfaceToTexture(surface, true);
+    }
+
     static void init()
     {
         // initialize sdl
@@ -79,8 +103,13 @@ public:
             printf("Couldn't initialize SDL: %s\n", SDL_GetError());
             exit(1);
         }
+        if (TTF_Init() < 0)
+        {
+            printf("Couldn't initialize SDL TTF: %s\n", SDL_GetError());
+            exit(1);
+        }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
-        window = SDL_CreateWindow("App", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
+        window = SDL_CreateWindow(VERSION, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
                                   WINDOW_HEIGHT, WINDOW_FLAGS);
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
         renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
@@ -88,6 +117,9 @@ public:
         for (const char* a: textureFiles)
             loadTexture(a);
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
+        font = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 24);
+        if (font == null) throw std::runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
@@ -97,6 +129,7 @@ public:
         IMG_Quit();
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
+        TTF_Quit();
         SDL_Quit();
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is down");
     }

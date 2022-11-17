@@ -5,6 +5,7 @@
 #include "RenderManager.h"
 #include "SoundManager.h"
 #include "SessionUtil.h"
+#include "UIComponent.h"
 
 // import static
 #define playSound SoundManager.playSound
@@ -158,7 +159,6 @@ public:
     void fire(Entity* owner, double degree) override;
 };
 
-
 /**
  * public class EnemyWeapon1 extends Weapon
  */
@@ -175,7 +175,6 @@ public:
 
     void fire(Entity* owner, double degree) override;
 };
-
 
 /**
  * public class EnemyWeapon2 extends Weapon
@@ -201,10 +200,10 @@ class App
 {
 private:
     shared_ptr<Player> player;
-    std::map<const char*, Weapon*> weapons;
-    std::list<shared_ptr<Entity>> entities;
-    std::list<shared_ptr<Entity>> environment;
-    std::list<shared_ptr<Entity>> ui;
+    map<const char*, Weapon*> weapons;
+    list<shared_ptr<Entity>> entities;
+    list<shared_ptr<Entity>> environment;
+    vector<UIComponent*> ui;
 
 public:
     bool pressedKey[1024]{};
@@ -219,7 +218,15 @@ public:
 
     Entity* getPlayer();
 
-    std::list<shared_ptr<Entity>> getEntities();
+    list<shared_ptr<Entity>> getEntities();
+
+    vector<UIComponent*> getUI();
+
+    UIComponent* addUIComponent(string name, SDL_Texture* texture, int x, int y);
+
+    bool removeUIComponent(const UIComponent* c, bool freeTexture); // not tested
+
+    bool removeUIComponent(const char* name, bool freeTexture);
 
     Entity* addEntity(Entity* e);
 
@@ -249,7 +256,6 @@ public:
     Enemy0();
 };
 
-
 /**
  * public class Enemy1 extends Entity
  */
@@ -258,7 +264,6 @@ class Enemy1 : public Entity
 public:
     Enemy1();
 };
-
 
 /**
  * public class Enemy2 extends Entity
@@ -269,7 +274,6 @@ public:
     Enemy2();
 };
 
-
 /**
  * public class Enemy3 extends Entity
  */
@@ -278,7 +282,6 @@ class Enemy3 : public Entity
 public:
     Enemy3();
 };
-
 
 /**
  * public class Bullet extends Entity
@@ -516,6 +519,11 @@ void App::startup()
     addEntity(player.get());
     player->maxHp = session.hp;
     player->hp = session.hp;
+    // initialize ui
+    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255), 10, 10);
+    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 40);
+    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 70);
+    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 100);
     // completed
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready. Entering main loop");
     mainTickLoop();
@@ -553,6 +561,45 @@ Entity* App::getPlayer()
 std::list<shared_ptr<Entity>> App::getEntities()
 {
     return entities;
+}
+
+vector<UIComponent*> App::getUI()
+{
+    return ui;
+}
+
+UIComponent* App::addUIComponent(std::string name, SDL_Texture* texture, int x, int y)
+{
+    ui.emplace_back(new UIComponent(name, texture, x, y));
+    return ui.at(ui.size() - 1);
+}
+
+bool App::removeUIComponent(const UIComponent* c, bool freeTexture)
+{
+    for (int i = 0; i != ui.size(); i++)
+        if (ui[i] == c)
+        {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Remove UI %s", ui[i]->name.c_str());
+            if (freeTexture) ui[i]->setTexture(null, true);
+            ui.erase(ui.begin() + i);
+            return true;
+        }
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", c->name.c_str());
+    return false;
+}
+
+bool App::removeUIComponent(const char* name, bool freeTexture)
+{
+    for (int i = 0; i != ui.size(); i++)
+        if (ui.at(i)->name == name)
+        {
+            if (freeTexture) ui[i]->setTexture(null, true);
+            ui.erase(ui.begin() + i);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Removed UI %s", name);
+            return true;
+        }
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", name);
+    return false;
 }
 
 Entity* App::addEntity(Entity* e)
@@ -644,6 +691,20 @@ void App::mainTickLoop()
                 e->tick();
             else if (e->type == ENTITY_TYPE_PLAYER) e->tick();
         }
+        // tick UI
+        for (auto it: ui)
+            if (it->name == "weapon indicator")
+                it->setTexture(
+                        RenderManager.getText(string("Weapon: ").append(player->weapon->name).c_str(),
+                                              255, 255, 255, 127), true);
+            else if (it->name == "hp indicator")
+                it->setTexture(
+                        RenderManager.getText(string("HP: ").append(to_string(player->hp)).c_str(),
+                                              255, 255, 255, 127), true);
+            else if (it->name == "credit indicator")
+                it->setTexture(
+                        RenderManager.getText(string("Credit: ").append(to_string(session.credit)).c_str(),
+                                              255, 255, 255, 127), true);
         // refresh screen
         SDL_SetRenderDrawColor(renderer, 32, 32, 64, 255);
         SDL_RenderClear(renderer);
@@ -652,6 +713,8 @@ void App::mainTickLoop()
         {
             if (!e->isDead) placeTexture(e->texture, e->x, e->y, e->width, e->height);
         }
+        for (const auto& a: ui)
+            placeTexture(a->texture, a->x, a->y);
         SDL_RenderPresent(renderer);
         // clean up
         if (tick % 100 == 0)
@@ -955,7 +1018,7 @@ Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, doubl
 int main(int argc, char** argv)
 {
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
-    cerr << endl << "ProjectNuma version alpha 0.0.1" << endl
+    cerr << endl << VERSION << endl
          << "Made by @MCUmbrella, licensed under MIT" << endl << endl;
     uint64_t startTime = CommonUtil.currentTimeNanos();
     (new App())->startup();

@@ -4,7 +4,7 @@ You're expected to experience various bugs or missing features.
 ## Progress
 - [x] Basic gameplay
 - [ ] Artwork
-- [ ] UI
+- [x] UI
 - [ ] Game menus
 - [ ] Weapon & ship upgrade purchase
 - [ ] Level system
