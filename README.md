@@ -41,7 +41,7 @@ You're expected to experience various bugs or missing features.
 - Weapon: `#1E`
 ### Enemy 3
 - Name: `Cruiser`
-- Size: `60 * 40`
+- Size: `256 * 160`
 - Speed: `0.25`X, `0`Y
 - HP: `750`
 - Weapon: `#2E`
