@@ -379,12 +379,13 @@ void Entity::tick()
 {
     // tickBefore
     if (beforeTick != null) beforeTick(this);
+
     // general tick operations
     move(dx, dy);
     if (weapon != null && reloadTicks > 0) reloadTicks--;
-    // check if this is bullet and hits something
     if (type == ENTITY_TYPE_BULLET)
     {
+        // this is bullet and hits something
         for (auto& e: app->getEntities())
         {
             if (!e->isDead && e->type != ENTITY_TYPE_BULLET && e->side != side && !e->isInvincible && CommonUtil.checkCollision(
@@ -398,10 +399,22 @@ void Entity::tick()
             }
         }
     }
+    else if (type != ENTITY_TYPE_PLAYER && side != SIDE_PLAYER && CommonUtil.checkCollision(
+            app->getPlayer()->x, app->getPlayer()->y, app->getPlayer()->width, app->getPlayer()->height,
+            x, y, width, height
+    ) && !app->getPlayer()->isDead)
+    {
+        // this is enemy and has collision with player
+        int hp0 = hp, hp1 = app->getPlayer()->hp;
+        hp -= hp1;
+        app->getPlayer()->hp -= hp0;
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s collides with player", name.c_str());
+    }
+
     // tickAfter or not
     if (hp <= 0)
     {
-        if (type != ENTITY_TYPE_BULLET)SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s dies", name.c_str());
+        if (type != ENTITY_TYPE_BULLET)SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s dies", name.c_str());
         if (onDeath != null) onDeath(this);
         isDead = true;
     }
@@ -424,6 +437,9 @@ Player::Player()
     y = WINDOW_HEIGHT / 2 - height / 2;
     texture = getTexture("assets/projectnuma/textures/entity/player.png");
     name = "Player";
+    onSpawn = [](Entity* self) {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
+    };
     beforeTick = [](Entity* self) {
         Player* p = (Player*) self;
         if (p->isDead)
@@ -434,6 +450,7 @@ Player::Player()
                 p->isDead = false;
                 p->x = 100;
                 p->y = WINDOW_HEIGHT / 2 - p->height / 2;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player respawned");
             }
             return;
         }
@@ -490,11 +507,9 @@ Player::Player()
         );
         ((Player*) self)->speedModifier = 1.0;
     };
-    onSpawn = [](Entity* self) {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player spawned");
-    };
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player died");
     };
     // load unlocked weapons from session file
     if (1 & session.unlockedWeapons)
@@ -825,7 +840,7 @@ void EnemyWeapon1::fire(Entity* owner, double degree)
 
 void EnemyWeapon2::fire(Entity* owner, double degree)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy weapon 2 fire");
     degree += r.nextDouble(6.0) - 3.0;
     for (int i = -7; i != 8; i++)
     {
@@ -929,12 +944,12 @@ bool App::removeUIComponent(const UIComponent* c, bool freeTexture)
     for (int i = 0; i != ui.size(); i++)
         if (ui[i] == c)
         {
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Remove UI %s", ui[i]->name.c_str());
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Remove UI %s", ui[i]->name.c_str());
             if (freeTexture) ui[i]->setTexture(null, true);
             ui.erase(ui.begin() + i);
             return true;
         }
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", c->name.c_str());
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", c->name.c_str());
     return false;
 }
 
@@ -945,16 +960,16 @@ bool App::removeUIComponent(const char* name, bool freeTexture)
         {
             if (freeTexture) ui[i]->setTexture(null, true);
             ui.erase(ui.begin() + i);
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Removed UI %s", name);
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Removed UI %s", name);
             return true;
         }
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", name);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", name);
     return false;
 }
 
 Entity* App::addEntity(Entity* e)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Add entity %s", e->name.c_str());
+    if (e->type != ENTITY_TYPE_BULLET)SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Add entity %s", e->name.c_str());
     entities.emplace_back(e);
     if (e->onSpawn != null) e->onSpawn(e);
     return e;
