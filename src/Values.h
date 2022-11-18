@@ -65,4 +65,16 @@ const char* textureFiles[] = {
         "assets/projectnuma/textures/entity/weapon2ebullet.png",
 };
 
+enum GameState
+{
+    STATE_STARTUP,
+    STATE_MENU,
+    STATE_LEVELS,
+    STATE_GAME,
+    STATE_HANGAR,
+    STATE_SETTINGS,
+    STATE_ABOUT,
+    STATE_SHUTDOWN,
+};
+
 #endif //PROJECTNUMA_VALUES_H

@@ -29,7 +29,7 @@ public:
 
     static void playSound(Mix_Chunk* sound)
     {
-        if (sound == null) throw runtime_error("Null pointer");
+        if (sound == null) throw runtime_error("Null pointer when passed to playSound()");
         Mix_PlayChannel(-1, sound, false);
     }
 
@@ -65,7 +65,7 @@ public:
 
     static void setBGM(Mix_Music* m)
     {
-        if (m == null) throw runtime_error("Null pointer");
+        if (m == null) throw runtime_error("Null pointer passed to setBGM()");
         stopBGM();
         Mix_PlayMusic(m, -1);
         bgm = m;

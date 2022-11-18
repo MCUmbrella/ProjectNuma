@@ -29,7 +29,7 @@ private:
 public:
     static int getTextureWidth(SDL_Texture* texture)
     {
-        if (texture == null) throw runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer passed to getTextureWidth()");
         int w;
         SDL_QueryTexture(texture, null, null, &w, null);
         return w;
@@ -37,7 +37,7 @@ public:
 
     static int getTextureHeight(SDL_Texture* texture)
     {
-        if (texture == null) throw runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer passed to getTextureHeight()");
         int h;
         SDL_QueryTexture(texture, null, null, null, &h);
         return h;
@@ -61,7 +61,7 @@ public:
 
     static void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
     {
-        if (texture == null) throw runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
@@ -72,7 +72,7 @@ public:
 
     static void placeTexture(SDL_Texture* texture, int x, int y)
     {
-        if (texture == null) throw runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
@@ -82,6 +82,7 @@ public:
 
     static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
+        if (text == null) throw runtime_error("Null pointer passed to getText()");
         SDL_Color color;
         color.r = r;
         color.g = g;

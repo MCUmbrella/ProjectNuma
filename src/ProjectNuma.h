@@ -313,11 +313,14 @@ private:
     vector<UIComponent*> ui;
 
 public:
+    GameState state = STATE_STARTUP;
     bool pressedKey[1024]{};
 
     void startup();
 
     void shutdown();
+
+    void doSDLEvents();
 
     SDL_Renderer* getRenderer();
 
@@ -339,7 +342,19 @@ public:
 
     void removeEntity(Entity* e, bool callOnDeath);
 
-    void mainTickLoop();
+    void mainLoop();
+
+    void doStateMenu();
+
+    void doStateLevels();
+
+    void doStateGame();
+
+    void doStateHangar();
+
+    void doStateSettings();
+
+    void doStateAbout();
 };
 
 // CLASS DEFINITIONS END ===============================================================================================
@@ -884,14 +899,10 @@ void App::startup()
     addEntity(player.get());
     player->maxHp = session.hp;
     player->hp = session.hp;
-    // initialize ui
-    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255), 10, 10);
-    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 40);
-    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 70);
-    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 100);
     // completed
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready. Entering main loop");
-    mainTickLoop();
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready");
+    state = STATE_GAME; //TODO: change this to STATE_MENU when completed doStateMenu()
+    mainLoop();
 }
 
 void App::shutdown()
@@ -904,6 +915,40 @@ void App::shutdown()
     session.hp = player->maxHp;
     session.save();
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutdown completed");
+}
+
+void App::doSDLEvents()
+{
+    // tick SDL events
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            case SDL_QUIT:
+            {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "FORCE SHUTDOWN! (SDL_QUIT signal received)");
+                shutdown();
+                exit(0);
+            }
+            case SDL_KEYDOWN:
+            {
+                SDL_KeyboardEvent e = event.key;
+                if (e.repeat == 0)
+                    pressedKey[e.keysym.scancode] = true;
+                break;
+            }
+            case SDL_KEYUP:
+            {
+                SDL_KeyboardEvent e = event.key;
+                if (e.repeat == 0)
+                    pressedKey[e.keysym.scancode] = false;
+                break;
+            }
+            default:
+                break;
+        }
+    }
 }
 
 SDL_Renderer* App::getRenderer()
@@ -991,38 +1036,81 @@ void App::removeEntity(Entity* e, bool callOnDeath) //FIXME: crashes on call
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Entity not found");
 }
 
-void App::mainTickLoop()
+void App::mainLoop()
 {
-    for (unsigned long long tick = 0;; tick++)
+    for (;;)
     {
-        // tick SDL events
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        switch (state)
         {
-            switch (event.type)
+            case STATE_STARTUP:
             {
-                case SDL_QUIT:
-                {
-                    shutdown();
-                    return;
-                }
-                case SDL_KEYDOWN:
-                {
-                    SDL_KeyboardEvent e = event.key;
-                    if (e.repeat == 0)
-                        pressedKey[e.keysym.scancode] = true;
-                    break;
-                }
-                case SDL_KEYUP:
-                {
-                    SDL_KeyboardEvent e = event.key;
-                    if (e.repeat == 0)
-                        pressedKey[e.keysym.scancode] = false;
-                    break;
-                }
-                default:
-                    break;
+                throw std::logic_error("App.state is not supposed to be STATE_STARTUP in mainLoop()");
             }
+            case STATE_MENU:
+            {
+                doStateMenu();
+                break;
+            }
+            case STATE_LEVELS:
+            {
+                doStateLevels();
+            }
+            case STATE_GAME:
+            {
+                doStateGame();
+                break;
+            }
+            case STATE_HANGAR:
+            {
+                doStateHangar();
+                break;
+            }
+            case STATE_SETTINGS:
+            {
+                doStateSettings();
+                break;
+            }
+            case STATE_ABOUT:
+            {
+                doStateAbout();
+                break;
+            }
+            case STATE_SHUTDOWN:
+            {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shutdown sequence initiated");
+                shutdown();
+                goto exitMainLoop;
+            }
+        }
+    }
+    exitMainLoop:;
+}
+
+void App::doStateMenu() //TODO
+{
+    ;
+}
+
+void App::doStateLevels() //TODO
+{
+    ;
+}
+
+void App::doStateGame()
+{
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game");
+    // initialize ui
+    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255), 10, 10);
+    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 40);
+    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 70);
+    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 100);
+    for (uint64_t tick = 0;; tick++)
+    {
+        doSDLEvents();
+        if (pressedKey[SDL_SCANCODE_ESCAPE])
+        {
+            state = STATE_SHUTDOWN; //TODO: change this to STATE_MENU when completed doStateMenu()
+            return;
         }
         // randomly add enemies
         if (r.nextInt(200) == 0)
@@ -1083,9 +1171,26 @@ void App::mainTickLoop()
         SDL_RenderPresent(renderer);
         // clean up
         if (tick % 100 == 0)
-            entities.remove_if([](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; });
+            entities.remove_if(
+                    [](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; }
+            );
         SDL_Delay(16);
     }
+}
+
+void App::doStateHangar() //TODO
+{
+    ;
+}
+
+void App::doStateSettings() //TODO
+{
+    ;
+}
+
+void App::doStateAbout() //TODO
+{
+    ;
 }
 
 // FUNCTION DEFINITIONS END ============================================================================================
