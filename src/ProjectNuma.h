@@ -661,11 +661,13 @@ Enemy3::Enemy3() : Entity()
     name = "Enemy cruiser";
     onSpawn = [](Entity* self) {
         playSound("assets/projectnuma/sounds/ambient/warn.wav");
+        self->isInvincible = true;
     };
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
+            self->isInvincible = false;
             double deg = CommonUtil.getDegreeBeteween(
                     self->x + self->width / 2,
                     self->y + self->height / 2,
@@ -1035,9 +1037,9 @@ void App::mainTickLoop()
         // tick entities
         for (const shared_ptr<Entity>& e: entities)
         {
-            if (e->type != ENTITY_TYPE_PLAYER && !e->isDead)
+            if (!e->isDead)
                 e->tick();
-            else if (e->type == ENTITY_TYPE_PLAYER) e->tick();
+            else if (e->type == ENTITY_TYPE_PLAYER && e->isDead) e->beforeTick(e.get());
         }
         // tick UI
         for (auto it: ui)
