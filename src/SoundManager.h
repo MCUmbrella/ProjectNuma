@@ -5,10 +5,8 @@
 #ifndef PROJECTNUMA_SOUNDMANAGER_H
 #define PROJECTNUMA_SOUNDMANAGER_H
 
-#include <SDL2/SDL_mixer.h>
-
-static std::map<const char*, Mix_Chunk*> sounds;
-static std::map<const char*, Mix_Music*> musics;
+static map<const char*, Mix_Chunk*> sounds;
+static map<const char*, Mix_Music*> musics;
 static Mix_Music* bgm = null;
 
 static class
@@ -18,20 +16,20 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName);
         Mix_Chunk* s = Mix_LoadWAV(fileName);
-        if (s == null)throw std::runtime_error(std::string("Sound not found: ").append(fileName));
+        if (s == null)throw runtime_error(string("Sound not found: ").append(fileName));
         sounds.emplace(fileName, s);
     }
 
     static Mix_Chunk* getSound(const char* name)
     {
         Mix_Chunk* s = sounds[name];
-        if (s == null) throw std::runtime_error(std::string("Sound not found: ").append(name));
+        if (s == null) throw runtime_error(string("Sound not found: ").append(name));
         return s;
     }
 
     static void playSound(Mix_Chunk* sound)
     {
-        if (sound == null) throw std::runtime_error("Null pointer");
+        if (sound == null) throw runtime_error("Null pointer");
         Mix_PlayChannel(-1, sound, false);
     }
 
@@ -44,14 +42,14 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName);
         Mix_Music* m = Mix_LoadMUS(fileName);
-        if (m == null)throw std::runtime_error(std::string("Music not found: ").append(fileName));
+        if (m == null)throw runtime_error(string("Music not found: ").append(fileName));
         musics.emplace(fileName, m);
     }
 
     static Mix_Music* getMusic(const char* name)
     {
         Mix_Music* m = musics[name];
-        if (m == null) throw std::runtime_error(std::string("Music not found: ").append(name));
+        if (m == null) throw runtime_error(string("Music not found: ").append(name));
         return m;
     }
 
@@ -67,7 +65,7 @@ public:
 
     static void setBGM(Mix_Music* m)
     {
-        if (m == null) throw std::runtime_error("Null pointer");
+        if (m == null) throw runtime_error("Null pointer");
         stopBGM();
         Mix_PlayMusic(m, -1);
         bgm = m;

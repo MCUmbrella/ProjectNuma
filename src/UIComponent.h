@@ -5,17 +5,12 @@
 #ifndef PROJECTNUMA_UICOMPONENT_H
 #define PROJECTNUMA_UICOMPONENT_H
 
-#include <SDL_render.h>
-#include <memory>
-#include <utility>
-#include "CommonUtil.h"
-
 class UIComponent
 {
 public:
     SDL_Texture* texture = null;
     int x = 0, y = 0;
-    std::string name;
+    string name;
 
     UIComponent* setTexture(SDL_Texture* newTexture, bool freeOldTexture)
     {
@@ -32,9 +27,9 @@ public:
         return this;
     }
 
-    UIComponent(std::string name, SDL_Texture* t, int x, int y)
+    UIComponent(string name, SDL_Texture* t, int x, int y)
     {
-        this->name = std::move(name);
+        this->name = move(name);
         texture = t;
         this->x = x;
         this->y = y;

@@ -17,7 +17,7 @@ public:
     void load()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading session file");
-        std::ifstream f(FILE_NAME);
+        ifstream f(FILE_NAME);
         if (f)
         {
             f >> hp >> credit >> unlockedWeapons >> unlockedLevels;
@@ -31,8 +31,8 @@ public:
     void save()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Saving session file");
-        std::ofstream f(FILE_NAME);
-        f << hp << ' ' << credit << ' ' << unlockedWeapons << ' ' << unlockedLevels << '\n' << std::flush;
+        ofstream f(FILE_NAME);
+        f << hp << ' ' << credit << ' ' << unlockedWeapons << ' ' << unlockedLevels << '\n' << flush;
         f.close();
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Session file saved");
     }

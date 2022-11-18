@@ -20,7 +20,7 @@ public:
 
     static uint64_t currentTimeNanos()
     {
-        using namespace std::chrono;
+        using namespace chrono;
         return duration_cast<nanoseconds>(
                 system_clock::now().time_since_epoch()
         ).count();

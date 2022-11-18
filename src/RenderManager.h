@@ -5,11 +5,8 @@
 #ifndef PROJECTNUMA_RENDERMANAGER_H
 #define PROJECTNUMA_RENDERMANAGER_H
 
-#include <SDL_render.h>
-#include <SDL_ttf.h>
-
 static SDL_Texture* PLACEHOLDER_TEXTURE;
-static std::map<const char*, SDL_Texture*> textures;
+static map<const char*, SDL_Texture*> textures;
 static SDL_Renderer* renderer = null;
 static SDL_Window* window = null;
 static TTF_Font* font = null;
@@ -32,7 +29,7 @@ private:
 public:
     static int getTextureWidth(SDL_Texture* texture)
     {
-        if (texture == null) throw std::runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer");
         int w;
         SDL_QueryTexture(texture, null, null, &w, null);
         return w;
@@ -40,7 +37,7 @@ public:
 
     static int getTextureHeight(SDL_Texture* texture)
     {
-        if (texture == null) throw std::runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer");
         int h;
         SDL_QueryTexture(texture, null, null, null, &h);
         return h;
@@ -50,7 +47,7 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
         SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
-        if (texture == null) throw std::runtime_error(std::string("Texture not found: ").append(fileName));
+        if (texture == null) throw runtime_error(string("Texture not found: ").append(fileName));
         textures[fileName] = texture;
         return texture;
     }
@@ -58,13 +55,13 @@ public:
     static SDL_Texture* getTexture(const char* name)
     {
         SDL_Texture* t = textures[name];
-        if (t == null) throw std::runtime_error(std::string("Texture not found: ").append(name));
+        if (t == null) throw runtime_error(string("Texture not found: ").append(name));
         return t;
     }
 
     static void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
     {
-        if (texture == null) throw std::runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
@@ -75,7 +72,7 @@ public:
 
     static void placeTexture(SDL_Texture* texture, int x, int y)
     {
-        if (texture == null) throw std::runtime_error("Null pointer");
+        if (texture == null) throw runtime_error("Null pointer");
         SDL_Rect destRect;
         destRect.x = x;
         destRect.y = y;
@@ -119,7 +116,7 @@ public:
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
         font = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 24);
-        if (font == null) throw std::runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
+        if (font == null) throw runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
