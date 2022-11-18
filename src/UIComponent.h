@@ -14,7 +14,7 @@ public:
 
     UIComponent* setTexture(SDL_Texture* newTexture, bool freeOldTexture)
     {
-        if(freeOldTexture)
+        if (freeOldTexture)
             SDL_DestroyTexture(texture);
         texture = newTexture;
         return this;

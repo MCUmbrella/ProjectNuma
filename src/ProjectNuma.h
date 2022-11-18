@@ -3,6 +3,7 @@
 //
 
 #ifndef PROJECTNUMA_PROJECTNUMA_H
+#define PROJECTNUMA_PROJECTNUMA_H
 
 #include <SDL_render.h>
 #include <SDL_image.h>
@@ -204,7 +205,7 @@ public:
     {
         name = "Shotgun";
         bulletSpeed = 20;
-        bulletDamage = 5;
+        bulletDamage = 7;
         reloadTicks = 20;
         bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon1bullet.png");
     }
@@ -222,7 +223,7 @@ public:
     {
         name = "Blaster";
         bulletSpeed = 20;
-        bulletDamage = 20;
+        bulletDamage = 13;
         reloadTicks = 100;
         bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon2bullet.png");
     }
@@ -268,15 +269,15 @@ public:
 /**
  * public class EnemyWeapon1 extends Weapon
  */
-class EnemyWeapon1 : public Weapon //TODO
+class EnemyWeapon1 : public Weapon
 {
 public:
     EnemyWeapon1()
     {
-        bulletSpeed = 10;
-        bulletDamage = 10;
+        bulletSpeed = 8;
+        bulletDamage = 8;
         reloadTicks = 40;
-        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon0ebullet.png");
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon1ebullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -285,15 +286,15 @@ public:
 /**
  * public class EnemyWeapon2 extends Weapon
  */
-class EnemyWeapon2 : public Weapon //TODO
+class EnemyWeapon2 : public Weapon
 {
 public:
     EnemyWeapon2()
     {
-        bulletSpeed = 10;
-        bulletDamage = 10;
-        reloadTicks = 100;
-        bulletTexture = PLACEHOLDER_TEXTURE;
+        bulletSpeed = 5;
+        bulletDamage = 20;
+        reloadTicks = 200;
+        bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon2ebullet.png");
     }
 
     void fire(Entity* owner, double degree) override;
@@ -307,8 +308,8 @@ class App
 private:
     shared_ptr<Player> player;
     map<const char*, Weapon*> weapons;
-    list<shared_ptr<Entity>> entities;
-    list<shared_ptr<Entity>> environment;
+    list <shared_ptr<Entity>> entities;
+    list <shared_ptr<Entity>> environment;
     vector<UIComponent*> ui;
 
 public:
@@ -324,7 +325,7 @@ public:
 
     Entity* getPlayer();
 
-    list<shared_ptr<Entity>> getEntities();
+    list <shared_ptr<Entity>> getEntities();
 
     vector<UIComponent*> getUI();
 
@@ -560,7 +561,7 @@ Enemy1::Enemy1() : Entity()
     type = ENTITY_TYPE_ENEMY;
     side = SIDE_ENEMY;
     maxHp = hp = 30;
-    reloadTicks = 10;
+    reloadTicks = 20;
     x = WINDOW_WIDTH;
     y = 450;
     speed = 1;
@@ -569,7 +570,7 @@ Enemy1::Enemy1() : Entity()
     width = 40;
     height = 32;
     texture = getTexture("assets/projectnuma/textures/entity/enemy1.png");
-    weapon = app->getWeapon("EnemyWeapon0");
+    weapon = app->getWeapon("EnemyWeapon1");
     name = "Enemy Fighter";
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
@@ -581,8 +582,11 @@ Enemy1::Enemy1() : Entity()
                     app->getPlayer()->x + app->getPlayer()->width / 2,
                     app->getPlayer()->y + app->getPlayer()->height / 2
             );
-            self->weapon->fire(self, deg);
-            self->reloadTicks = self->weapon->reloadTicks;
+            if (deg >= 150 || deg <= -150)
+            {
+                self->weapon->fire(self, deg);
+                self->reloadTicks = self->weapon->reloadTicks;
+            }
         }
     };
     onDeath = [](Entity* self) {
@@ -601,7 +605,7 @@ Enemy2::Enemy2() : Entity()
     type = ENTITY_TYPE_ENEMY;
     side = SIDE_ENEMY;
     maxHp = hp = 60;
-    reloadTicks = 10;
+    reloadTicks = 20;
     x = WINDOW_WIDTH;
     y = 450;
     speed = 1;
@@ -610,7 +614,7 @@ Enemy2::Enemy2() : Entity()
     width = 60;
     height = 40;
     texture = getTexture("assets/projectnuma/textures/entity/enemy2.png");
-    weapon = app->getWeapon("EnemyWeapon0");
+    weapon = app->getWeapon("EnemyWeapon1");
     name = "Enemy armored fighter";
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
@@ -622,8 +626,11 @@ Enemy2::Enemy2() : Entity()
                     app->getPlayer()->x + app->getPlayer()->width / 2,
                     app->getPlayer()->y + app->getPlayer()->height / 2
             );
-            self->weapon->fire(self, deg);
-            self->reloadTicks = self->weapon->reloadTicks;
+            if (deg >= 135 || deg <= -135)
+            {
+                self->weapon->fire(self, deg);
+                self->reloadTicks = self->weapon->reloadTicks;
+            }
         }
     };
     onDeath = [](Entity* self) {
@@ -642,7 +649,7 @@ Enemy3::Enemy3() : Entity()
     type = ENTITY_TYPE_ENEMY;
     side = SIDE_ENEMY;
     maxHp = hp = 750;
-    reloadTicks = 100;
+    reloadTicks = 1000;
     x = WINDOW_WIDTH;
     y = 450;
     speed = 0.25;
@@ -650,7 +657,7 @@ Enemy3::Enemy3() : Entity()
     width = 256;
     height = 160;
     texture = getTexture("assets/projectnuma/textures/entity/enemy3.png");
-    weapon = app->getWeapon("EnemyWeapon0");
+    weapon = app->getWeapon("EnemyWeapon2");
     name = "Enemy cruiser";
     onSpawn = [](Entity* self) {
         playSound("assets/projectnuma/sounds/ambient/warn.wav");
@@ -772,7 +779,6 @@ void PlayerWeapon3::fire(Entity* owner, double degree)
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
-    b->hp = 10;
     b->move(0, -b->height / 2);
     b->texture = bulletTexture;
     app->addEntity(b);
@@ -790,11 +796,8 @@ void EnemyWeapon0::fire(Entity* owner, double degree)
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
-    b->hp = 100;
+    b->move(-b->width / 2, -b->height / 2);
     b->texture = bulletTexture;
-    b->afterTick = [](Entity* self) {
-        self->hp--;
-    };
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon0e.wav");
 }
@@ -810,11 +813,8 @@ void EnemyWeapon1::fire(Entity* owner, double degree)
             owner->x + owner->width / 2, owner->y + owner->height / 2,
             bulletSpeed, degree
     );
-    b->hp = 100;
+    b->move(-b->width / 2, -b->height / 2);
     b->texture = bulletTexture;
-    b->afterTick = [](Entity* self) {
-        self->hp--;
-    };
     app->addEntity(b);
     playSound("assets/projectnuma/sounds/item/weapon1e.wav");
 }
@@ -823,19 +823,23 @@ void EnemyWeapon1::fire(Entity* owner, double degree)
 
 void EnemyWeapon2::fire(Entity* owner, double degree)
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Enemy weapon 2 fire");
-    degree += r.nextDouble(2.0) - 1.0;
-    Bullet* b = new Bullet(
-            owner, bulletDamage, 8, 8,
-            owner->x + owner->width / 2, owner->y + owner->height / 2,
-            bulletSpeed, degree
-    );
-    b->hp = 100;
-    b->texture = bulletTexture;
-    b->afterTick = [](Entity* self) {
-        self->hp--;
-    };
-    app->addEntity(b);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s fire", name.c_str());
+    degree += r.nextDouble(6.0) - 3.0;
+    for (int i = -7; i != 8; i++)
+    {
+        Bullet* b = new Bullet(
+                owner, bulletDamage, 16, 16,
+                owner->x + owner->width / 2, owner->y + owner->height / 2,
+                bulletSpeed, degree - i * 3
+        );
+        b->hp = 150;
+        b->move(-b->width / 2, -b->height / 2);
+        b->texture = bulletTexture;
+        b->afterTick = [](Entity* self) {
+            self->hp--;
+        };
+        app->addEntity(b);
+    }
     playSound("assets/projectnuma/sounds/item/weapon2e.wav");
 }
 
@@ -902,7 +906,7 @@ Entity* App::getPlayer()
     return player.get();
 }
 
-list<shared_ptr<Entity>> App::getEntities()
+list <shared_ptr<Entity>> App::getEntities()
 {
     return entities;
 }
@@ -1068,8 +1072,5 @@ void App::mainTickLoop()
 }
 
 // FUNCTION DEFINITIONS END ============================================================================================
-
-
-#define PROJECTNUMA_PROJECTNUMA_H
 
 #endif //PROJECTNUMA_PROJECTNUMA_H

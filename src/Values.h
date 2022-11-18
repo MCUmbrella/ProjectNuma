@@ -61,6 +61,8 @@ const char* textureFiles[] = {
         "assets/projectnuma/textures/entity/weapon2bullet.png",
         "assets/projectnuma/textures/entity/weapon3bullet.png",
         "assets/projectnuma/textures/entity/weapon0ebullet.png",
+        "assets/projectnuma/textures/entity/weapon1ebullet.png",
+        "assets/projectnuma/textures/entity/weapon2ebullet.png",
 };
 
 #endif //PROJECTNUMA_VALUES_H

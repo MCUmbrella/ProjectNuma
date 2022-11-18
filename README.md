@@ -57,14 +57,14 @@ You're expected to experience various bugs or missing features.
 - Name: `Shotgun`
 - Reload time: `20`
 - Bullet speed: `20`
-- Bullet damage: `5`
+- Bullet damage: `7`
 - Bullet size: `8 * 8`
 - Description: `Fire 5 bullets into the area on the right`
 ### Weapon 2
 - Name: `Blaster`
 - Reload time: `100`
 - Bullet speed: `20`
-- Bullet damage: `20`
+- Bullet damage: `13`
 - Bullet size: `16 * 16`
 - Description: `Fire 36 bullets in all directions`
 ### Weapon 3
@@ -75,16 +75,23 @@ You're expected to experience various bugs or missing features.
 - Bullet size: `200 * 20`
 - Description: `Fires a very high damage laser beam`
 ### Weapon 0E
-- Name: `Turret gun`
 - Reload time: `100`
 - Bullet speed: `10`
 - Bullet damage: `5`
 - Bullet size: `8 * 8`
 - Description: `Weapon used by enemy turrets`
 ### Weapon 1E
-TODO
+- Reload time: `40`
+- Bullet speed: `8`
+- Bullet damage: `8`
+- Bullet size: `8 * 8`
+- Description: `Weapon used by enemy fighters`
 ### Weapon 2E
-TODO
+- Reload time: `200`
+- Bullet speed: `5`
+- Bullet damage: `20`
+- Bullet size: `16 * 16`
+- Description: `Weapon used by enemy cruiser. Fire 15 bullets into the area`
 # Build
 ## Requirements
 - libsdl2-dev

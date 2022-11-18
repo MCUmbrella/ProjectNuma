@@ -18,7 +18,7 @@ Include_Directories(
         ${SDL2_TTF_INCLUDE_DIRS}
 )
 
-file(GLOB SOURCES   GeneralIncludes.h src/* src*/*)
+file(GLOB SOURCES   src/* src*/*)
 Add_Executable (${CMAKE_PROJECT_NAME} ${SOURCES})
 
 Target_Link_Libraries (
