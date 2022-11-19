@@ -1320,8 +1320,11 @@ void App::doStateGame(Level* level)
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_ESCAPE])
         {
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
-            goto toMainMenu;
+            if (showPrompt("Return to the main menu?", true))
+            {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
+                goto toMainMenu;
+            }
         }
         // check level goal
         if (
