@@ -15,11 +15,11 @@ You're expected to experience various bugs or missing features.
 - Fast / slow move: `right Shift` / `right Ctrl`
 - Fire: `SPACE`
 - Switch weapon: `right Alt`
-- Quit: `Alt+F4` or close the window
+- Quit: `Esc`, `Alt+F4` or close the window
 ## Player
 - Size: `40 * 32`
 - Speed: `6`, `4.2 (slow moving)`, `9 (fast moving)`
-- HP: `50`
+- HP: `50 (base)`
 ## Enemies
 ### Enemy 0
 - Name: `Turret`

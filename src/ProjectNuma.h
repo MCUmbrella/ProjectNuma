@@ -110,6 +110,7 @@ public:
 class Player : public Entity
 {
 public:
+    int life = 1, invincibleTicks = 150;
     double speedModifier = 1.0;
     vector<Weapon*> currentWeapons;
 
@@ -317,6 +318,7 @@ public:
     GameState state = STATE_STARTUP;
     bool pressedKey[1024]{};
     int killboardLevel[4]{};
+    Level* currentLevel = null;
 
     void startup();
 
@@ -328,7 +330,7 @@ public:
 
     Weapon* getWeapon(const char* name);
 
-    Entity* getPlayer();
+    Player* getPlayer();
 
     list <shared_ptr<Entity>> getEntities();
 
@@ -423,7 +425,7 @@ void Entity::tick()
     else if (type != ENTITY_TYPE_PLAYER && side != SIDE_PLAYER && CommonUtil.checkCollision(
             app->getPlayer()->x, app->getPlayer()->y, app->getPlayer()->width, app->getPlayer()->height,
             x, y, width, height
-    ) && !app->getPlayer()->isDead)
+    ) && !app->getPlayer()->isDead && (!isInvincible && !app->getPlayer()->isInvincible))
     {
         // this is enemy and has collision with player
         int hp0 = hp, hp1 = app->getPlayer()->hp;
@@ -463,14 +465,26 @@ Player::Player()
     };
     beforeTick = [](Entity* self) {
         Player* p = (Player*) self;
+        if (p->invincibleTicks >= 0) p->isInvincible = true;
+        else p->isInvincible = false;
         if (p->isDead)
         {
             p->hp++;
-            if (p->hp == p->maxHp)
+            if (p->hp == 0)
             {
-                p->isDead = false;
-                p->setLocation(100, WINDOW_HEIGHT / 2 - p->height / 2);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player respawned");
+                if (p->life > 0)
+                {
+                    p->hp = p->maxHp;
+                    p->isDead = false;
+                    p->setLocation(100, WINDOW_HEIGHT / 2 - p->height / 2);
+                    p->invincibleTicks = 150;
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player respawned");
+                }
+                else
+                {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Game over");
+                    app->currentLevel->isFailed = true;
+                }
             }
             return;
         }
@@ -526,10 +540,13 @@ Player::Player()
                 self->y
         );
         ((Player*) self)->speedModifier = 1.0;
+        ((Player*) self)->invincibleTicks--;
     };
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player died");
+        self->hp = -150;
+        ((Player*) self)->life--;
     };
     // load unlocked weapons from session file
     if (1 & session.unlockedWeapons)
@@ -971,7 +988,7 @@ Weapon* App::getWeapon(const char* name)
     return w;
 }
 
-Entity* App::getPlayer()
+Player* App::getPlayer()
 {
     return player.get();
 }
@@ -1159,11 +1176,14 @@ void App::doStateLevels() //TODO
 void App::doStateGame(Level* level)
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
+    currentLevel = level;
     // initialize ui
     addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
     addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
     addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
     addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
+    addUIComponent("life indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 130);
+    getPlayer()->life = level->playerLife;
     getPlayer()->hp = getPlayer()->maxHp;
     getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
     setBGM("assets/projectnuma/sounds/music/game/0.ogg");
@@ -1183,15 +1203,21 @@ void App::doStateGame(Level* level)
                 killboardLevel[3] >= level->killGoal[3]
                 )
         {
+            level->isPassed = true;
+        }
+
+        if (currentLevel->isPassed)
+        {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Level passed: %s", level->name.c_str());
-            for (int i = 0; i != 4; i++) // move kill counts to total
-            {
-                session.killboardTotal[i] += killboardLevel[i];
-                killboardLevel[i] = 0;
-            }
-            memset(pressedKey, false, sizeof pressedKey); // reset keyboard
+            if (level->id != 0)session.unlockedLevels = MAX(level->id, session.unlockedLevels);
             goto toMainMenu;
         }
+        if (currentLevel->isFailed)
+        {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Level failed: %s", level->name.c_str());
+            goto toMainMenu;
+        }
+
         // randomly add enemies
         if (r.nextDouble(1) <= level->spawnRateBase)
             switch (r.nextInt(4))
@@ -1242,6 +1268,11 @@ void App::doStateGame(Level* level)
                 it->setTexture(
                         RenderManager.getText(string("Credit: ").append(to_string(session.credit)).c_str(),
                                               255, 255, 255, 127, FONT_SIZE_M), true);
+            else if (it->name == "life indicator")
+                it->setTexture(
+                        RenderManager.getText(string("Life: ").append(to_string(getPlayer()->life)).c_str(),
+                                              255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 127,
+                                              FONT_SIZE_M), true);
         render();
         // clean up
         if (tick % 100 == 0)
@@ -1249,15 +1280,23 @@ void App::doStateGame(Level* level)
         SDL_Delay(16);
     }
     toMainMenu:
+    // remove ui
     removeUIComponent("version", true);
     removeUIComponent("weapon indicator", true);
     removeUIComponent("hp indicator", true);
     removeUIComponent("credit indicator", true);
-    for (const auto& a: entities)
+    removeUIComponent("life indicator", true);
+    for (const auto& a: entities) // remove all entities
         if (a->type != ENTITY_TYPE_PLAYER)
             a->isDead = true;
     cleanupEntities();
-    pressedKey[SDL_SCANCODE_ESCAPE] = false;
+    for (int i = 0; i != 4; i++) // move kill counts to total
+    {
+        session.killboardTotal[i] += killboardLevel[i];
+        killboardLevel[i] = 0;
+    }
+    memset(pressedKey, false, sizeof pressedKey); // reset keyboard
+    currentLevel = null;
     state = STATE_MENU;
 }
 
