@@ -77,4 +77,13 @@ enum GameState
     STATE_SHUTDOWN,
 };
 
+enum FontSize
+{
+    FONT_SIZE_XS, // 16pt
+    FONT_SIZE_S, // 20pt
+    FONT_SIZE_M, // 24pt
+    FONT_SIZE_L, // 28pt
+    FONT_SIZE_XL, // 32pt
+};
+
 #endif //PROJECTNUMA_VALUES_H

@@ -340,7 +340,11 @@ public:
 
     Entity* addEntity(Entity* e);
 
-    void removeEntity(Entity* e, bool callOnDeath);
+    void removeEntity(Entity* e, bool callOnDeath); //FIXME: crashes on call
+
+    void render();
+
+    void cleanupEntities();
 
     void mainLoop();
 
@@ -463,8 +467,7 @@ Player::Player()
             if (p->hp == p->maxHp)
             {
                 p->isDead = false;
-                p->x = 100;
-                p->y = WINDOW_HEIGHT / 2 - p->height / 2;
+                p->setLocation(100, WINDOW_HEIGHT / 2 - p->height / 2);
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player respawned");
             }
             return;
@@ -883,7 +886,6 @@ void App::startup()
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is coming up. Please wait");
     RenderManager.init();
     SoundManager.init();
-    setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
     // initialize weapons
     weapons.emplace("PlayerWeapon0", new PlayerWeapon0());
     weapons.emplace("PlayerWeapon1", new PlayerWeapon1());
@@ -901,7 +903,7 @@ void App::startup()
     player->hp = session.hp;
     // completed
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready");
-    state = STATE_GAME; //TODO: change this to STATE_MENU when completed doStateMenu()
+    state = STATE_MENU; //TODO: change this to STATE_MENU when completed doStateMenu()
     mainLoop();
 }
 
@@ -994,7 +996,7 @@ bool App::removeUIComponent(const UIComponent* c, bool freeTexture)
             ui.erase(ui.begin() + i);
             return true;
         }
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", c->name.c_str());
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "UI %s not found", c->name.c_str());
     return false;
 }
 
@@ -1020,7 +1022,7 @@ Entity* App::addEntity(Entity* e)
     return e;
 }
 
-void App::removeEntity(Entity* e, bool callOnDeath) //FIXME: crashes on call
+void App::removeEntity(Entity* e, bool callOnDeath)
 {
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Remove entity %s", e->name.c_str());
     for (const shared_ptr<Entity>& ee: entities)
@@ -1034,6 +1036,29 @@ void App::removeEntity(Entity* e, bool callOnDeath) //FIXME: crashes on call
         }
     }
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Entity not found");
+}
+
+void App::render()
+{
+    // refresh screen
+    SDL_SetRenderDrawColor(renderer, 32, 32, 64, 255);
+    SDL_RenderClear(renderer);
+    // place entities
+    for (const auto& e: entities)
+    {
+        if (!e->isDead) placeTexture(e->texture, e->x, e->y, e->width, e->height);
+    }
+    // place ui components
+    for (const auto& a: ui)
+        placeTexture(a->texture, a->x, a->y);
+    SDL_RenderPresent(renderer);
+}
+
+void App::cleanupEntities()
+{
+    entities.remove_if(
+            [](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; }
+    );
 }
 
 void App::mainLoop()
@@ -1086,9 +1111,37 @@ void App::mainLoop()
     exitMainLoop:;
 }
 
-void App::doStateMenu() //TODO
+void App::doStateMenu()
 {
-    ;
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Show main menu");
+    getPlayer()->setLocation(WINDOW_WIDTH, WINDOW_HEIGHT);
+    SDL_Texture* logo = RenderManager.getText("(game logo here)", 127, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* startGame = RenderManager.getText("Press [SPACE] to start the game", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* quitGame = RenderManager.getText("Press [ESC] to quit the game", 255, 255, 255, 255, FONT_SIZE_L);
+    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 350);
+    addUIComponent("start", startGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGame) / 2, 500);
+    addUIComponent("quit", quitGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGame) / 2, 550);
+    setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
+    for (;;)
+    {
+        doSDLEvents();
+        if (pressedKey[SDL_SCANCODE_ESCAPE]) // quit game
+        {
+            state = STATE_SHUTDOWN;
+            return;
+        }
+        if (pressedKey[SDL_SCANCODE_SPACE]) // start main game
+        {
+            removeUIComponent("logo", true);
+            removeUIComponent("start", true);
+            removeUIComponent("quit", true);
+            pressedKey[SDL_SCANCODE_SPACE] = false;
+            state = STATE_GAME;
+            return;
+        }
+        render();
+        SDL_Delay(16);
+    }
 }
 
 void App::doStateLevels() //TODO
@@ -1100,16 +1153,32 @@ void App::doStateGame()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game");
     // initialize ui
-    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255), 10, 10);
-    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 40);
-    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 70);
-    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255), 10, 100);
+    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
+    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
+    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
+    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
+    getPlayer()->hp = getPlayer()->maxHp;
+    getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
+    setBGM("assets/projectnuma/sounds/music/game/0.ogg");
     for (uint64_t tick = 0;; tick++)
     {
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_ESCAPE])
         {
-            state = STATE_SHUTDOWN; //TODO: change this to STATE_MENU when completed doStateMenu()
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
+            removeUIComponent("version", true);
+            removeUIComponent("weapon indicator", true);
+            removeUIComponent("hp indicator", true);
+            removeUIComponent("credit indicator", true);
+            for (const auto& a: entities)
+                if (a->type != ENTITY_TYPE_PLAYER)
+                {
+                    a->hp = 0;
+                    a->isDead = true;
+                }
+            cleanupEntities();
+            pressedKey[SDL_SCANCODE_ESCAPE] = false;
+            state = STATE_MENU;
             return;
         }
         // randomly add enemies
@@ -1149,31 +1218,19 @@ void App::doStateGame()
             if (it->name == "weapon indicator")
                 it->setTexture(
                         RenderManager.getText(string("Weapon: ").append(player->weapon->name).c_str(),
-                                              255, 255, 255, 127), true);
+                                              255, 255, 255, 127, FONT_SIZE_M), true);
             else if (it->name == "hp indicator")
                 it->setTexture(
                         RenderManager.getText(string("HP: ").append(to_string(player->hp)).c_str(),
-                                              255, 255, 255, 127), true);
+                                              255, 255, 255, 127, FONT_SIZE_M), true);
             else if (it->name == "credit indicator")
                 it->setTexture(
                         RenderManager.getText(string("Credit: ").append(to_string(session.credit)).c_str(),
-                                              255, 255, 255, 127), true);
-        // refresh screen
-        SDL_SetRenderDrawColor(renderer, 32, 32, 64, 255);
-        SDL_RenderClear(renderer);
-        // place textures
-        for (const shared_ptr<Entity>& e: entities)
-        {
-            if (!e->isDead) placeTexture(e->texture, e->x, e->y, e->width, e->height);
-        }
-        for (const auto& a: ui)
-            placeTexture(a->texture, a->x, a->y);
-        SDL_RenderPresent(renderer);
+                                              255, 255, 255, 127, FONT_SIZE_M), true);
+        render();
         // clean up
         if (tick % 100 == 0)
-            entities.remove_if(
-                    [](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; }
-            );
+            cleanupEntities();
         SDL_Delay(16);
     }
 }

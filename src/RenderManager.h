@@ -9,7 +9,11 @@ static SDL_Texture* PLACEHOLDER_TEXTURE;
 static map<const char*, SDL_Texture*> textures;
 static SDL_Renderer* renderer = null;
 static SDL_Window* window = null;
-static TTF_Font* font = null;
+static TTF_Font* font16 = null;
+static TTF_Font* font20 = null;
+static TTF_Font* font24 = null;
+static TTF_Font* font28 = null;
+static TTF_Font* font32 = null;
 const static int
         RENDERER_FLAGS = SDL_RENDERER_ACCELERATED,
         WINDOW_FLAGS = 0;
@@ -80,7 +84,7 @@ public:
         SDL_RenderCopy(renderer, texture, null, &destRect);
     }
 
-    static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a, FontSize size)
     {
         if (text == null) throw runtime_error("Null pointer passed to getText()");
         SDL_Color color;
@@ -89,7 +93,14 @@ public:
         color.b = b;
         color.a = a;
         SDL_Surface* surface;
-        surface = TTF_RenderUTF8_Blended(font, text, color);
+        surface = TTF_RenderUTF8_Blended(
+                size == FONT_SIZE_XL ? font32 :
+                size == FONT_SIZE_L ? font28 :
+                size == FONT_SIZE_M ? font24 :
+                size == FONT_SIZE_S ? font20 :
+                font16,
+                text, color
+        );
         return surfaceToTexture(surface, true);
     }
 
@@ -115,9 +126,13 @@ public:
         for (const char* a: textureFiles)
             loadTexture(a);
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
-        font = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 24);
-        if (font == null) throw runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font24: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
+        font16 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 16);
+        font20 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 20);
+        font24 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 24);
+        font28 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 28);
+        font32 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 32);
+        if (font24 == null) throw runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
