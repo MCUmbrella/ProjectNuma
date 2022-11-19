@@ -3,7 +3,7 @@ This game is still in the very early stages of development.
 You're expected to experience various bugs or missing features.
 ## Progress
 - [x] Basic gameplay
-- [ ] Artwork
+- [x] Artwork
 - [x] UI
 - [x] Game menus
 - [ ] Weapon & ship upgrade purchase

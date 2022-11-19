@@ -64,6 +64,7 @@ const char* textureFiles[] = {
         "assets/projectnuma/textures/entity/weapon0ebullet.png",
         "assets/projectnuma/textures/entity/weapon1ebullet.png",
         "assets/projectnuma/textures/entity/weapon2ebullet.png",
+        "assets/projectnuma/textures/gui/title.png",
 };
 
 enum GameState

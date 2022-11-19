@@ -1139,10 +1139,10 @@ void App::doStateMenu()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Show main menu");
     getPlayer()->setLocation(WINDOW_WIDTH, WINDOW_HEIGHT);
-    SDL_Texture* logo = RenderManager.getText("(game logo here)", 127, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* logo = getTexture("assets/projectnuma/textures/gui/title.png");
     SDL_Texture* startGame = RenderManager.getText("Press [SPACE] to start the game", 255, 255, 255, 255, FONT_SIZE_L);
     SDL_Texture* quitGame = RenderManager.getText("Press [ESC] to quit the game", 255, 255, 255, 255, FONT_SIZE_L);
-    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 350);
+    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
     addUIComponent("start", startGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGame) / 2, 500);
     addUIComponent("quit", quitGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGame) / 2, 550);
     setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
@@ -1156,7 +1156,7 @@ void App::doStateMenu()
         }
         if (pressedKey[SDL_SCANCODE_SPACE]) // start main game
         {
-            removeUIComponent("logo", true);
+            removeUIComponent("logo", false);
             removeUIComponent("start", true);
             removeUIComponent("quit", true);
             pressedKey[SDL_SCANCODE_SPACE] = false;
