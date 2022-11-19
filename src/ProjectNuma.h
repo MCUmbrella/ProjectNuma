@@ -1185,6 +1185,7 @@ void App::doStateGame(Level* level)
     addUIComponent("life indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 130);
     getPlayer()->life = level->playerLife;
     getPlayer()->hp = getPlayer()->maxHp;
+    getPlayer()->isDead = false;
     getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
     setBGM("assets/projectnuma/sounds/music/game/0.ogg");
     for (uint64_t tick = 0;; tick++)
