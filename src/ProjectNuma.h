@@ -552,7 +552,7 @@ Player::Player()
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player died");
-        self->hp = -150;
+        self->hp = -100;
         ((Player*) self)->life--;
     };
     // load unlocked weapons from session file
@@ -1342,11 +1342,13 @@ void App::doStateGame(Level* level)
         {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Level passed: %s", level->name.c_str());
             if (level->id != 0)session.unlockedLevels = MAX(level->id, session.unlockedLevels);
+            showPrompt("LEVEL PASSED!", false);
             goto toMainMenu;
         }
         if (currentLevel->isFailed)
         {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Level failed: %s", level->name.c_str());
+            showPrompt("GAME OVER!", false);
             goto toMainMenu;
         }
 
@@ -1395,7 +1397,7 @@ void App::doStateGame(Level* level)
             else if (it->name == "hp indicator")
                 it->setTexture(
                         getText(string("HP: ").append(to_string(player->hp)).c_str(),
-                                255, 255, 255, 127, FONT_SIZE_M), true);
+                                255, player->hp > 0 ? 255 : 0, player->hp > 0 ? 255 : 0, 127, FONT_SIZE_M), true);
             else if (it->name == "credit indicator")
                 it->setTexture(
                         getText(string("Credit: ").append(to_string(session.credit)).c_str(),
