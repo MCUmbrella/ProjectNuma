@@ -95,14 +95,29 @@ public:
 
     Entity* setLocation(double x1, double y1);
 
+    /**
+     * Move the entity, check its collisions and HP.
+     */
     void tick();
 
+    /**
+     * The codes to be executed before the tick() function.
+     */
     void (* beforeTick)(Entity* self) = null;
 
+    /**
+     * The codes to be executed after the tick() function.
+     */
     void (* afterTick)(Entity* self) = null;
 
+    /**
+     * The code to be executed when the entity is added to the entities list.
+     */
     void (* onSpawn)(Entity* self) = null;
 
+    /**
+     * The code to be executed when the entity was killed.
+     */
     void (* onDeath)(Entity* self) = null;
 };
 
@@ -178,6 +193,11 @@ public:
     string name = "(unnamed weapon)";
     SDL_Texture* bulletTexture;
 
+    /**
+     *
+     * @param owner The pointer to the owner of this weapon.
+     * @param degree The angle of the bullet. 0 degree is the right side.
+     */
     virtual void fire(Entity* owner, double degree) = 0;
 };
 
@@ -322,52 +342,127 @@ public:
     int killboardLevel[4]{};
     Level* currentLevel = null;
 
+    /**
+     * The codes to be executed when starting the game.
+     */
     void startup();
 
+    /**
+     * The codes to be executed when quitting the game.
+     */
     void shutdown();
 
+    /**
+     * update SDL events.
+     */
     void doSDLEvents();
 
+    /**
+     * Reset all keys' pressing state.
+     */
     void resetKeyState();
 
-    SDL_Renderer* getRenderer();
-
+    /**
+     * Get the Weapon object by its registered name.
+     * @param name The name of the weapon registration.
+     * @return The pointer to the weapon object.
+     * @throws runtime_error if theres no such weapon in the registered weapons list.
+     */
     Weapon* getWeapon(const char* name);
 
+    /**
+     * Get the pointer to the player's Player object.
+     */
     Player* getPlayer();
 
+    /**
+     * Get the list object that stores all the entities.
+     */
     list <shared_ptr<Entity>> getEntities();
 
+    /**
+     * Get the list object that stores all the UI components.
+     */
     vector<UIComponent*> getUI();
 
+    /**
+     * Add a UI component to the UI list.
+     * @param name The name of the UI component.
+     * @param texture The texture used by this UI.
+     * @param x The X position of the component.
+     * @param y The Y position of the component.
+     * @return The pointer to the newly added UI component.
+     */
     UIComponent* addUIComponent(string name, SDL_Texture* texture, int x, int y);
 
     bool removeUIComponent(const UIComponent* c, bool freeTexture); // not tested
 
+    /**
+     * Remove a UI component from the UI list by its name.
+     * @param name The name of the UI component.
+     * @param freeTexture Whether to free the texture used by this component.
+     * @return true if succeed, false otherwise.
+     */
     bool removeUIComponent(const char* name, bool freeTexture);
 
+    /**
+     * Add an entity to the entities list.
+     * @param e The pointer to the Entity object.
+     * @return The pointer to the Entity object.
+     */
     Entity* addEntity(Entity* e);
 
     void removeEntity(Entity* e, bool callOnDeath); //FIXME: crashes on call
 
+    /**
+     * Refresh the screen.
+     */
     void render();
 
+    /**
+     * Show a prompt with options on the screen.
+     * @param msg The message to show.
+     * @param showOptions Whether to show "[SPACE] Proceed, [Esc] Cancel".
+     * @return true if the prompt is proceeded, false if the prompt is cancelled.
+     */
     bool showPrompt(const char* msg, bool showOptions);
 
+    /**
+     * Remove all the dead entities.
+     */
     void cleanupEntities();
 
     void mainLoop();
 
+    /**
+     * Show main menu.
+     */
     void doStateMenu();
 
+    /**
+     * Show level select page.
+     */
     void doStateLevels();
 
+    /**
+     * Enter the main game scene.
+     * @param level The Level object used this time.
+     */
     void doStateGame(Level* level);
 
+    /**
+     * Show the hangar page.
+     */
     void doStateHangar();
 
+    /**
+     * Show the settings page.
+     */
     void doStateSettings();
 
+    /**
+     * Show the about page.
+     */
     void doStateAbout();
 };
 
@@ -986,11 +1081,6 @@ void App::doSDLEvents()
 void App::resetKeyState()
 {
     memset(pressedKey, false, sizeof pressedKey); // reset keyboard
-}
-
-SDL_Renderer* App::getRenderer()
-{
-    return renderer;
 }
 
 Weapon* App::getWeapon(const char* name)

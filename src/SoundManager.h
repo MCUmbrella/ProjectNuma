@@ -12,6 +12,10 @@ static Mix_Music* bgm = null;
 static class
 {
 public:
+    /**
+     * Load a sound from file.
+     * @param fileName File path.
+     */
     static Mix_Chunk* loadSound(const char* fileName)
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName);
@@ -20,6 +24,10 @@ public:
         sounds.emplace(fileName, s);
     }
 
+    /**
+     * Get a loaded sound from its path.
+     * @param name File path.
+     */
     static Mix_Chunk* getSound(const char* name)
     {
         Mix_Chunk* s = sounds[name];
@@ -27,17 +35,29 @@ public:
         return s;
     }
 
+    /**
+     * Play a sound object.
+     * @param sound The pointer to the sound object.
+     */
     static void playSound(Mix_Chunk* sound)
     {
         if (sound == null) throw runtime_error("Null pointer when passed to playSound()");
         Mix_PlayChannel(-1, sound, false);
     }
 
+    /**
+     * Play a loaded sound by its file path.
+     * @param name File path.
+     */
     static void playSound(const char* name)
     {
         playSound(getSound(name));
     }
 
+    /**
+     * Load a music from file.
+     * @param fileName File path.
+     */
     static Mix_Music* loadMusic(const char* fileName)
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName);
@@ -46,6 +66,10 @@ public:
         musics.emplace(fileName, m);
     }
 
+    /**
+     * Get a loaded music from its path.
+     * @param name File path.
+     */
     static Mix_Music* getMusic(const char* name)
     {
         Mix_Music* m = musics[name];
@@ -53,6 +77,9 @@ public:
         return m;
     }
 
+    /**
+     * Stop the playing music.
+     */
     static void stopBGM()
     {
         if (bgm != null)
@@ -63,6 +90,10 @@ public:
         }
     }
 
+    /**
+     * Play the music object.
+     * @param m The pointer to the music.
+     */
     static void setBGM(Mix_Music* m)
     {
         if (m == null) throw runtime_error("Null pointer passed to setBGM()");
@@ -71,12 +102,19 @@ public:
         bgm = m;
     }
 
+    /**
+     * Play a loaded music by its file path.
+     * @param name File path.
+     */
     static void setBGM(const char* name)
     {
         setBGM(getMusic(name));
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "BGM set to %s", name);
     }
 
+    /**
+     * Initialize sound manager.
+     */
     static void init()
     {
         if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
@@ -93,6 +131,9 @@ public:
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager initialization completed");
     }
 
+    /**
+     * Shutdown sound manager.
+     */
     static void shutdown()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager is being shut down now");

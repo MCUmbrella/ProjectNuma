@@ -31,6 +31,9 @@ private:
     }
 
 public:
+    /**
+     * Get the width of a texture.
+     */
     static int getTextureWidth(SDL_Texture* texture)
     {
         if (texture == null) throw runtime_error("Null pointer passed to getTextureWidth()");
@@ -39,6 +42,9 @@ public:
         return w;
     }
 
+    /**
+     * Get the height of a texture.
+     */
     static int getTextureHeight(SDL_Texture* texture)
     {
         if (texture == null) throw runtime_error("Null pointer passed to getTextureHeight()");
@@ -47,6 +53,10 @@ public:
         return h;
     }
 
+    /**
+     * Load a texture from file.
+     * @param fileName The file path of the texture.
+     */
     static SDL_Texture* loadTexture(const char* fileName)
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
@@ -56,6 +66,10 @@ public:
         return texture;
     }
 
+    /**
+     * Get the loaded texture by its path.
+     * @param name The path of the texture file.
+     */
     static SDL_Texture* getTexture(const char* name)
     {
         SDL_Texture* t = textures[name];
@@ -63,6 +77,12 @@ public:
         return t;
     }
 
+    /**
+     * Resize and place a texture on the screen.
+     * @param texture The pointer to the texture.
+     * @param width The width that needs to be stretched to.
+     * @param height The height that needs to be stretched to.
+     */
     static void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
@@ -74,6 +94,10 @@ public:
         SDL_RenderCopy(renderer, texture, null, &destRect);
     }
 
+    /**
+     * Place a texture on the screen.
+     * @param texture The pointer to the texture.
+     */
     static void placeTexture(SDL_Texture* texture, int x, int y)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
@@ -84,6 +108,15 @@ public:
         SDL_RenderCopy(renderer, texture, null, &destRect);
     }
 
+    /**
+     * Convert a text to the texture object.
+     * @param text The text that needs to be converted.
+     * @param r RGB value.
+     * @param g RGB value.
+     * @param b RGB value.
+     * @param a Alpha value.
+     * @param size FontSize: XS, S, M, L, XL.
+     */
     static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a, FontSize size)
     {
         if (text == null) throw runtime_error("Null pointer passed to getText()");
@@ -104,6 +137,9 @@ public:
         return surfaceToTexture(surface, true);
     }
 
+    /**
+     * Initialize the render manager.
+     */
     static void init()
     {
         // initialize sdl
@@ -136,6 +172,9 @@ public:
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
+    /**
+     * Shutdown the render manager.
+     */
     static void shutdown()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is being shut down now");

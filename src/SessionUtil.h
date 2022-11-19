@@ -15,6 +15,9 @@ public:
     int killboardTotal[4]{};
     uint64_t credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
 
+    /**
+     * Load player date from "session.dat".
+     */
     void load()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading session file");
@@ -30,6 +33,9 @@ public:
         else SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Session file not found or failed to open");
     }
 
+    /**
+     * Save player data to "session.txt".
+     */
     void save()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Saving session file");
