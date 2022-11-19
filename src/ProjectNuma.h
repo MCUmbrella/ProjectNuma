@@ -1092,8 +1092,8 @@ void App::render()
 bool App::showPrompt(const char* msg, bool showOptions)
 {
     SDL_Texture* textTexture = getText(msg, 255, 255, 0, 255, FONT_SIZE_XL);
-    SDL_Texture* yes = getText("[SPACE] Proceed", 255, 255, 255, 255, FONT_SIZE_L);
-    SDL_Texture* no = getText("[ESC] Cancel", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* yes = getText("[SPACE] Proceed", 200, 200, 200, 255, FONT_SIZE_L);
+    SDL_Texture* no = getText("[ESC] Cancel", 200, 200, 200, 255, FONT_SIZE_L);
     addUIComponent("prompt0", textTexture, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2, 400);
     addUIComponent("prompt1", yes, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2,
                    showOptions ? 450 : 1000);
@@ -1270,10 +1270,12 @@ void App::doStateMenu()
                 }
                 case 3: // settings
                 {
+                    showPrompt("This feature has not been implemented yet", true);
                     break;
                 }
                 case 4: // about
                 {
+                    showPrompt("This feature has not been implemented yet", true);
                     break;
                 }
             }
