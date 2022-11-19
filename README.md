@@ -6,7 +6,7 @@ You're expected to experience various bugs or missing features.
 - [x] Artwork
 - [x] UI
 - [x] Game menus
-- [ ] Weapon & ship upgrade purchase
+- [x] Weapon & ship upgrade purchase
 - [ ] Level system
 - [ ] Custom levels
 - [ ] Storyline

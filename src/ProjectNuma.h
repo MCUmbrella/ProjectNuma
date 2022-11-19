@@ -9,6 +9,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
+#include <functional>
 #include <map>
 #include <memory>
 #include <list>
@@ -30,6 +31,7 @@ typedef char EntityType;
 #define setBGM SoundManager.setBGM
 #define getTexture RenderManager.getTexture
 #define placeTexture RenderManager.placeTexture
+#define getText RenderManager.getText
 
 class App;
 
@@ -349,6 +351,8 @@ public:
     void removeEntity(Entity* e, bool callOnDeath); //FIXME: crashes on call
 
     void render();
+
+    bool showPrompt(const char* msg, bool showOptions);
 
     void cleanupEntities();
 
@@ -1085,6 +1089,41 @@ void App::render()
     SDL_RenderPresent(renderer);
 }
 
+bool App::showPrompt(const char* msg, bool showOptions)
+{
+    SDL_Texture* textTexture = getText(msg, 255, 255, 0, 255, FONT_SIZE_XL);
+    SDL_Texture* yes = getText("[SPACE] Proceed", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* no = getText("[ESC] Cancel", 255, 255, 255, 255, FONT_SIZE_L);
+    addUIComponent("prompt0", textTexture, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2, 400);
+    addUIComponent("prompt1", yes, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2,
+                   showOptions ? 450 : 1000);
+    addUIComponent("prompt2", no, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2,
+                   showOptions ? 500 : 1000);
+    for (;;)
+    {
+        resetKeyState();
+        doSDLEvents();
+        if (pressedKey[SDL_SCANCODE_RETURN] || pressedKey[SDL_SCANCODE_SPACE])
+        {
+            removeUIComponent("prompt0", true);
+            removeUIComponent("prompt1", true);
+            removeUIComponent("prompt2", true);
+            resetKeyState();
+            return true;
+        }
+        else if (pressedKey[SDL_SCANCODE_ESCAPE])
+        {
+            removeUIComponent("prompt0", true);
+            removeUIComponent("prompt1", true);
+            removeUIComponent("prompt2", true);
+            resetKeyState();
+            return false;
+        }
+        render();
+        SDL_Delay(50);
+    }
+}
+
 void App::cleanupEntities()
 {
     entities.remove_if(
@@ -1110,6 +1149,7 @@ void App::mainLoop()
             case STATE_LEVELS:
             {
                 doStateLevels();
+                break;
             }
             case STATE_GAME:
             {
@@ -1146,22 +1186,49 @@ void App::mainLoop()
 void App::doStateMenu()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Show main menu");
-    setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
+    if (bgm != SoundManager.getMusic("assets/projectnuma/sounds/music/menu/0.ogg"))
+        setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
     getPlayer()->setLocation(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     SDL_Texture* logo = getTexture("assets/projectnuma/textures/gui/title.png");
 
-    SDL_Texture* startGame = RenderManager.getText("START", 255, 255, 255, 255, FONT_SIZE_XL);
-    SDL_Texture* startGameSelected = RenderManager.getText("START", 0, 255, 0, 255, FONT_SIZE_XL);
+    SDL_Texture* startGameText = getText("START", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* startGameSelected = getText("START", 0, 255, 0, 255, FONT_SIZE_XL);
 
-    SDL_Texture* quitGame = RenderManager.getText("QUIT", 255, 255, 255, 255, FONT_SIZE_XL);
-    SDL_Texture* quitGameSelected = RenderManager.getText("QUIT", 0, 255, 0, 255, FONT_SIZE_XL);
+    SDL_Texture* quitGameText = getText("QUIT", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* quitGameSelected = getText("QUIT", 0, 255, 0, 255, FONT_SIZE_XL);
 
-    UIComponent* logoUI = addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
-    UIComponent* startUI = addUIComponent("start", startGame,
-                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGame) / 2, 500);
-    UIComponent* quitUI = addUIComponent("quit", quitGame,
-                                         WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGame) / 2, 550);
+    SDL_Texture* hangarText = getText("HANGAR", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* hangarSelected = getText("HANGAR", 0, 255, 0, 255, FONT_SIZE_XL);
+
+    SDL_Texture* settingsText = getText("SETTINGS", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* settingsSelected = getText("SETTINGS", 0, 255, 0, 255, FONT_SIZE_XL);
+
+    SDL_Texture* aboutText = getText("ABOUT", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* aboutSelected = getText("ABOUT", 0, 255, 0, 255, FONT_SIZE_XL);
+
+    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
+
+    UIComponent* startUI = addUIComponent("start", startGameText,
+                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGameText) / 2, 500);
+    UIComponent* quitUI = addUIComponent("quit", quitGameText,
+                                         WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGameText) / 2, 550);
+    UIComponent* hangarUI = addUIComponent("hangar", hangarText,
+                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(hangarText) / 2, 600);
+    UIComponent* settingsUI = addUIComponent("settings", settingsText,
+                                             WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(settingsText) / 2, 650);
+    UIComponent* aboutUI = addUIComponent("about", aboutText,
+                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(aboutText) / 2, 700);
+
+    function<void()> removeUI = [&]() {
+        removeUIComponent("logo", false);
+        removeUIComponent("start", true);
+        removeUIComponent("quit", true);
+        removeUIComponent("hangar", true);
+        removeUIComponent("settings", true);
+        removeUIComponent("about", true);
+        resetKeyState();
+    };
 
     int selection = 0;
     for (;;)
@@ -1169,12 +1236,14 @@ void App::doStateMenu()
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_S] || pressedKey[SDL_SCANCODE_DOWN])
         {
-            selection = abs(++selection) % 2;
+            if (selection == 4) selection = 0;
+            else selection++;
             resetKeyState();
         }
         else if (pressedKey[SDL_SCANCODE_W] || pressedKey[SDL_SCANCODE_UP])
         {
-            selection = abs(--selection) % 2;
+            if (selection == 0) selection = 4;
+            else selection--;
             resetKeyState();
         }
         else if (pressedKey[SDL_SCANCODE_SPACE] || pressedKey[SDL_SCANCODE_RETURN])
@@ -1183,10 +1252,7 @@ void App::doStateMenu()
             {
                 case 0: // start game
                 {
-                    removeUIComponent("logo", false);
-                    removeUIComponent("start", true);
-                    removeUIComponent("quit", true);
-                    resetKeyState();
+                    removeUI();
                     state = STATE_GAME;
                     return;
                 }
@@ -1195,13 +1261,35 @@ void App::doStateMenu()
                     state = STATE_SHUTDOWN;
                     return;
                 }
+                case 2: // hangar
+                {
+                    removeUI();
+                    state = STATE_HANGAR;
+                    return;
+                }
+                case 3: // settings
+                {
+                    break;
+                }
+                case 4: // about
+                {
+                    break;
+                }
             }
         }
 
+        // highlight the selected option
         if (selection == 0) startUI->setTexture(startGameSelected, false);
-        else startUI->setTexture(startGame, false);
+        else startUI->setTexture(startGameText, false);
         if (selection == 1) quitUI->setTexture(quitGameSelected, false);
-        else quitUI->setTexture(quitGame, false);
+        else quitUI->setTexture(quitGameText, false);
+        if (selection == 2) hangarUI->setTexture(hangarSelected, false);
+        else hangarUI->setTexture(hangarText, false);
+        if (selection == 3) settingsUI->setTexture(settingsSelected, false);
+        else settingsUI->setTexture(settingsText, false);
+        if (selection == 4) aboutUI->setTexture(aboutSelected, false);
+        else aboutUI->setTexture(aboutText, false);
+
         render();
         SDL_Delay(50);
     }
@@ -1217,11 +1305,11 @@ void App::doStateGame(Level* level)
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
     currentLevel = level;
     // initialize ui
-    addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
-    addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
-    addUIComponent("hp indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
-    addUIComponent("credit indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
-    addUIComponent("life indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 130);
+    addUIComponent("version", getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
+    addUIComponent("weapon indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
+    addUIComponent("hp indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
+    addUIComponent("credit indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
+    addUIComponent("life indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 130);
     getPlayer()->life = level->playerLife;
     getPlayer()->hp = getPlayer()->maxHp;
     getPlayer()->isDead = false;
@@ -1298,21 +1386,21 @@ void App::doStateGame(Level* level)
         for (auto it: ui)
             if (it->name == "weapon indicator")
                 it->setTexture(
-                        RenderManager.getText(string("Weapon: ").append(player->weapon->name).c_str(),
-                                              255, 255, 255, 127, FONT_SIZE_M), true);
+                        getText(string("Weapon: ").append(player->weapon->name).c_str(),
+                                255, 255, 255, 127, FONT_SIZE_M), true);
             else if (it->name == "hp indicator")
                 it->setTexture(
-                        RenderManager.getText(string("HP: ").append(to_string(player->hp)).c_str(),
-                                              255, 255, 255, 127, FONT_SIZE_M), true);
+                        getText(string("HP: ").append(to_string(player->hp)).c_str(),
+                                255, 255, 255, 127, FONT_SIZE_M), true);
             else if (it->name == "credit indicator")
                 it->setTexture(
-                        RenderManager.getText(string("Credit: ").append(to_string(session.credit)).c_str(),
-                                              255, 255, 255, 127, FONT_SIZE_M), true);
+                        getText(string("Credit: ").append(to_string(session.credit)).c_str(),
+                                255, 255, 255, 127, FONT_SIZE_M), true);
             else if (it->name == "life indicator")
                 it->setTexture(
-                        RenderManager.getText(string("Life: ").append(to_string(getPlayer()->life)).c_str(),
-                                              255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 127,
-                                              FONT_SIZE_M), true);
+                        getText(string("Life: ").append(to_string(getPlayer()->life)).c_str(),
+                                255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 127,
+                                FONT_SIZE_M), true);
         render();
         // clean up
         if (tick % 100 == 0)
@@ -1340,9 +1428,170 @@ void App::doStateGame(Level* level)
     state = STATE_MENU;
 }
 
-void App::doStateHangar() //TODO
+void App::doStateHangar()
 {
-    ;
+    addUIComponent("hangar", getText("Hangar", 255, 255, 0, 255, FONT_SIZE_XL), 20, 20);
+    addUIComponent("back", getText("[Esc] Go back", 255, 255, 255, 255, FONT_SIZE_L), 20, 850);
+    SDL_Texture* w1 = getText("Shotgun (600CR)", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* w2 = getText("Blaster (2000CR)", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* w3 = getText("Laser cannon (2000CR)", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* hp = getText("+10 max HP (1880CR)", 255, 255, 255, 255, FONT_SIZE_L);
+
+    SDL_Texture* w1s = getText("Shotgun (600CR)", 0, 255, 0, 255, FONT_SIZE_L);
+    SDL_Texture* w2s = getText("Blaster (2000CR)", 0, 255, 0, 255, FONT_SIZE_L);
+    SDL_Texture* w3s = getText("Laser cannon (2000CR)", 0, 255, 0, 255, FONT_SIZE_L);
+    SDL_Texture* hps = getText("+10 max HP (1880CR)", 0, 255, 0, 255, FONT_SIZE_L);
+
+    UIComponent* w1ui = addUIComponent("w1", w1, 50, 70);
+    UIComponent* w2ui = addUIComponent("w2", w2, 50, 110);
+    UIComponent* w3ui = addUIComponent("w3", w3, 50, 150);
+    UIComponent* hpui = addUIComponent("hp", hp, 50, 190);
+    UIComponent* cr = addUIComponent("credit", getText("A", 255, 255, 255, 255, FONT_SIZE_L), 20, 800);
+
+    int selection = 0;
+    for (;;)
+    {
+        doSDLEvents();
+        if (pressedKey[SDL_SCANCODE_ESCAPE])
+        {
+            removeUIComponent("hangar", true);
+            removeUIComponent("back", true);
+            removeUIComponent("credit", true);
+            removeUIComponent("w1", true);
+            removeUIComponent("w2", true);
+            removeUIComponent("w3", true);
+            removeUIComponent("hp", true);
+            resetKeyState();
+            state = STATE_MENU;
+            return;
+        }
+        else if (pressedKey[SDL_SCANCODE_S] || pressedKey[SDL_SCANCODE_DOWN])
+        {
+            if (selection == 3) selection = 0;
+            else selection++;
+            resetKeyState();
+        }
+        else if (pressedKey[SDL_SCANCODE_W] || pressedKey[SDL_SCANCODE_UP])
+        {
+            if (selection == 0) selection = 3;
+            else selection--;
+            resetKeyState();
+        }
+        else if (pressedKey[SDL_SCANCODE_SPACE] || pressedKey[SDL_SCANCODE_RETURN])
+        {
+            switch (selection)
+            {
+                case 0: // buy Weapon1 with 600cr
+                {
+                    if (showPrompt("Purchase this weapon?", true))
+                    {
+                        if (session.unlockedWeapons & 2) // check if this hasent been purchased before
+                        {
+                            showPrompt("You have already purchased this!", false);
+                        }
+                        else
+                        {
+                            if (session.credit >= 600) // check if your money is enough
+                            {
+                                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Purchase weapon 1");
+                                session.unlockedWeapons = session.unlockedWeapons | 2;
+                                session.credit -= 600;
+                                player->currentWeapons.emplace_back(getWeapon("PlayerWeapon1"));
+                                showPrompt("Purchase success!", false);
+                            }
+                            else showPrompt("You don't have enough credits!", false);
+
+                        }
+                    }
+                    resetKeyState();
+                    break;
+                }
+                case 1: // buy Weapon2 with 2000cr
+                {
+                    if (showPrompt("Purchase this weapon?", true))
+                    {
+                        if (session.unlockedWeapons & 4)
+                        {
+                            showPrompt("You have already purchased this!", false);
+                        }
+                        else
+                        {
+                            if (session.credit >= 2000)
+                            {
+                                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Purchase weapon 2");
+                                session.unlockedWeapons = session.unlockedWeapons | 4;
+                                session.credit -= 2000;
+                                player->currentWeapons.emplace_back(getWeapon("PlayerWeapon2"));
+                                showPrompt("Purchase success!", false);
+                            }
+                            else showPrompt("You don't have enough credits!", false);
+
+                        }
+
+                    }
+                    resetKeyState();
+                    break;
+                }
+                case 2: // buy Weapon3 with 2000cr
+                {
+                    if (showPrompt("Purchase this weapon?", true))
+                    {
+                        if (session.unlockedWeapons & 8)
+                        {
+                            showPrompt("You have already purchased this!", false);
+                        }
+                        else
+                        {
+                            if (session.credit >= 2000)
+                            {
+                                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Purchase weapon 3");
+                                session.unlockedWeapons = session.unlockedWeapons | 8;
+                                session.credit -= 2000;
+                                player->currentWeapons.emplace_back(getWeapon("PlayerWeapon3"));
+                                showPrompt("Purchase success!", false);
+                            }
+                            else showPrompt("You don't have enough credits!", false);
+                        }
+                    }
+                    resetKeyState();
+                    break;
+                }
+                case 3: // buy 10 max hp with 1880cr
+                {
+                    if (showPrompt("Purchase this upgrade?", true))
+                    {
+                        if (session.credit >= 1880)
+                        {
+                            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Purchase 10 max HP");
+                            session.hp += 10;
+                            player->maxHp += 10;
+                            session.credit -= 1880;
+                            showPrompt("Purchase success!", false);
+                        }
+                        else showPrompt("You don't have enough credits!", false);
+                    }
+                    resetKeyState();
+                    break;
+                }
+            }
+        }
+
+        // highlight the selected option
+        if (selection == 0) w1ui->setTexture(w1s, false);
+        else w1ui->setTexture(w1, false);
+        if (selection == 1) w2ui->setTexture(w2s, false);
+        else w2ui->setTexture(w2, false);
+        if (selection == 2) w3ui->setTexture(w3s, false);
+        else w3ui->setTexture(w3, false);
+        if (selection == 3) hpui->setTexture(hps, false);
+        else hpui->setTexture(hp, false);
+
+        cr->setTexture(
+                getText(string("Credit: ").append(to_string(session.credit)).c_str(),
+                        255, 255, 255, 255, FONT_SIZE_L), true);
+        render();
+        SDL_Delay(50);
+    }
 }
 
 void App::doStateSettings() //TODO
