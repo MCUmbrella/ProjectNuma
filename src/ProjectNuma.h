@@ -1105,7 +1105,7 @@ void App::mainLoop()
             }
             case STATE_GAME:
             {
-                Level defaultLevel;
+                Level defaultLevel = LevelUtil.loadLevel("assets/projectnuma/levels/infinite.level");
                 doStateGame(&defaultLevel);
                 break;
             }
