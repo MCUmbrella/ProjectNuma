@@ -326,6 +326,8 @@ public:
 
     void doSDLEvents();
 
+    void resetKeyState();
+
     SDL_Renderer* getRenderer();
 
     Weapon* getWeapon(const char* name);
@@ -976,6 +978,11 @@ void App::doSDLEvents()
     }
 }
 
+void App::resetKeyState()
+{
+    memset(pressedKey, false, sizeof pressedKey); // reset keyboard
+}
+
 SDL_Renderer* App::getRenderer()
 {
     return renderer;
@@ -1138,33 +1145,64 @@ void App::mainLoop()
 void App::doStateMenu()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Show main menu");
-    getPlayer()->setLocation(WINDOW_WIDTH, WINDOW_HEIGHT);
-    SDL_Texture* logo = getTexture("assets/projectnuma/textures/gui/title.png");
-    SDL_Texture* startGame = RenderManager.getText("Press [SPACE] to start the game", 255, 255, 255, 255, FONT_SIZE_L);
-    SDL_Texture* quitGame = RenderManager.getText("Press [ESC] to quit the game", 255, 255, 255, 255, FONT_SIZE_L);
-    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
-    addUIComponent("start", startGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGame) / 2, 500);
-    addUIComponent("quit", quitGame, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGame) / 2, 550);
     setBGM("assets/projectnuma/sounds/music/menu/0.ogg");
+    getPlayer()->setLocation(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    SDL_Texture* logo = getTexture("assets/projectnuma/textures/gui/title.png");
+
+    SDL_Texture* startGame = RenderManager.getText("START", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* startGameSelected = RenderManager.getText("START", 0, 255, 0, 255, FONT_SIZE_XL);
+
+    SDL_Texture* quitGame = RenderManager.getText("QUIT", 255, 255, 255, 255, FONT_SIZE_XL);
+    SDL_Texture* quitGameSelected = RenderManager.getText("QUIT", 0, 255, 0, 255, FONT_SIZE_XL);
+
+    UIComponent* logoUI = addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
+    UIComponent* startUI = addUIComponent("start", startGame,
+                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGame) / 2, 500);
+    UIComponent* quitUI = addUIComponent("quit", quitGame,
+                                         WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGame) / 2, 550);
+
+    int selection = 0;
     for (;;)
     {
         doSDLEvents();
-        if (pressedKey[SDL_SCANCODE_ESCAPE]) // quit game
+        if (pressedKey[SDL_SCANCODE_S])
         {
-            state = STATE_SHUTDOWN;
-            return;
+            selection = abs(++selection) % 2;
+            resetKeyState();
         }
-        if (pressedKey[SDL_SCANCODE_SPACE]) // start main game
+        else if (pressedKey[SDL_SCANCODE_W])
         {
-            removeUIComponent("logo", false);
-            removeUIComponent("start", true);
-            removeUIComponent("quit", true);
-            pressedKey[SDL_SCANCODE_SPACE] = false;
-            state = STATE_GAME;
-            return;
+            selection = abs(--selection) % 2;
+            resetKeyState();
         }
+        else if (pressedKey[SDL_SCANCODE_SPACE])
+        {
+            switch (selection)
+            {
+                case 0: // start game
+                {
+                    removeUIComponent("logo", false);
+                    removeUIComponent("start", true);
+                    removeUIComponent("quit", true);
+                    resetKeyState();
+                    state = STATE_GAME;
+                    return;
+                }
+                case 1: // quit
+                {
+                    state = STATE_SHUTDOWN;
+                    return;
+                }
+            }
+        }
+
+        if (selection == 0) startUI->setTexture(startGameSelected, false);
+        else startUI->setTexture(startGame, false);
+        if (selection == 1) quitUI->setTexture(quitGameSelected, false);
+        else quitUI->setTexture(quitGame, false);
         render();
-        SDL_Delay(16);
+        SDL_Delay(50);
     }
 }
 
@@ -1296,7 +1334,7 @@ void App::doStateGame(Level* level)
         session.killboardTotal[i] += killboardLevel[i];
         killboardLevel[i] = 0;
     }
-    memset(pressedKey, false, sizeof pressedKey); // reset keyboard
+    resetKeyState();
     currentLevel = null;
     state = STATE_MENU;
 }
