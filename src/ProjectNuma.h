@@ -511,7 +511,7 @@ Player::Player()
             p->reloadTicks = p->weapon->reloadTicks;
         }
         // press right-Alt to switch weapon
-        if (app->pressedKey[SDL_SCANCODE_RALT] && p->reloadTicks == 0)
+        if (app->pressedKey[SDL_SCANCODE_RALT])
         {
             for (int i = 0; i != p->currentWeapons.size(); i++)
                 if (p->currentWeapons[i] == p->weapon)
@@ -530,6 +530,7 @@ Player::Player()
                     playSound("assets/projectnuma/sounds/ambient/weaponLoad.wav");
                     break;
                 }
+            app->pressedKey[SDL_SCANCODE_RALT] = false;
         }
     };
     afterTick = [](Entity* self) {
@@ -1166,17 +1167,17 @@ void App::doStateMenu()
     for (;;)
     {
         doSDLEvents();
-        if (pressedKey[SDL_SCANCODE_S])
+        if (pressedKey[SDL_SCANCODE_S] || pressedKey[SDL_SCANCODE_DOWN])
         {
             selection = abs(++selection) % 2;
             resetKeyState();
         }
-        else if (pressedKey[SDL_SCANCODE_W])
+        else if (pressedKey[SDL_SCANCODE_W] || pressedKey[SDL_SCANCODE_UP])
         {
             selection = abs(--selection) % 2;
             resetKeyState();
         }
-        else if (pressedKey[SDL_SCANCODE_SPACE])
+        else if (pressedKey[SDL_SCANCODE_SPACE] || pressedKey[SDL_SCANCODE_RETURN])
         {
             switch (selection)
             {
