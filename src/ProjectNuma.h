@@ -1099,6 +1099,7 @@ bool App::showPrompt(const char* msg, bool showOptions)
                    showOptions ? 450 : 1000);
     addUIComponent("prompt2", no, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2,
                    showOptions ? 500 : 1000);
+    playSound("assets/projectnuma/sounds/ambient/msg.wav");
     for (;;)
     {
         resetKeyState();
