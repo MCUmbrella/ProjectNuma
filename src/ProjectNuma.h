@@ -996,7 +996,7 @@ SDL_Renderer* App::getRenderer()
 Weapon* App::getWeapon(const char* name)
 {
     Weapon* w = weapons[name];
-    if (w == null) throw runtime_error(string("Weapon not found: ").append(name));
+    if (w == null) throw runtime_error(string("Weapon not found: ") + name);
     return w;
 }
 

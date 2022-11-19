@@ -7,6 +7,7 @@
 
 #define null nullptr
 #define VERSION "ProjectNuma version alpha 0.0.1"
+#define FONT_FILE "assets/projectnuma/font/MesloLGS_NF_Regular.ttf"
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
 #define ENTITY_TYPE_PLAYER '\x00'

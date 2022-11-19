@@ -16,14 +16,14 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName);
         Mix_Chunk* s = Mix_LoadWAV(fileName);
-        if (s == null)throw runtime_error(string("Sound not found: ").append(fileName));
+        if (s == null)throw runtime_error(string("Sound not found: ") + fileName);
         sounds.emplace(fileName, s);
     }
 
     static Mix_Chunk* getSound(const char* name)
     {
         Mix_Chunk* s = sounds[name];
-        if (s == null) throw runtime_error(string("Sound not found: ").append(name));
+        if (s == null) throw runtime_error(string("Sound not found: ") + name);
         return s;
     }
 
@@ -42,14 +42,14 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName);
         Mix_Music* m = Mix_LoadMUS(fileName);
-        if (m == null)throw runtime_error(string("Music not found: ").append(fileName));
+        if (m == null)throw runtime_error(string("Music not found: ") + fileName);
         musics.emplace(fileName, m);
     }
 
     static Mix_Music* getMusic(const char* name)
     {
         Mix_Music* m = musics[name];
-        if (m == null) throw runtime_error(string("Music not found: ").append(name));
+        if (m == null) throw runtime_error(string("Music not found: ") + name);
         return m;
     }
 

@@ -48,7 +48,7 @@ public:
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loaded level: %s(ID: %lu)", l.name.c_str(), l.id);
             return l;
         }
-        else throw runtime_error(string("Failed to load level file: ").append(fileName));
+        else throw runtime_error(string("Failed to load level file: ") + fileName);
     }
 } LevelUtil;
 

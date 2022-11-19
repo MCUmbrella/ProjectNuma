@@ -51,7 +51,7 @@ public:
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
         SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
-        if (texture == null) throw runtime_error(string("Texture not found: ").append(fileName));
+        if (texture == null) throw runtime_error(string("Texture not found: ") + fileName);
         textures[fileName] = texture;
         return texture;
     }
@@ -59,7 +59,7 @@ public:
     static SDL_Texture* getTexture(const char* name)
     {
         SDL_Texture* t = textures[name];
-        if (t == null) throw runtime_error(string("Texture not found: ").append(name));
+        if (t == null) throw runtime_error(string("Texture not found: ") + name);
         return t;
     }
 
@@ -126,13 +126,13 @@ public:
         for (const char* a: textureFiles)
             loadTexture(a);
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font24: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
-        font16 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 16);
-        font20 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 20);
-        font24 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 24);
-        font28 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 28);
-        font32 = TTF_OpenFont("assets/projectnuma/font/MesloLGS_NF_Regular.ttf", 32);
-        if (font24 == null) throw runtime_error("Font not found: assets/projectnuma/font/MesloLGS_NF_Regular.ttf");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: %s", FONT_FILE);
+        font16 = TTF_OpenFont(FONT_FILE, 16);
+        font20 = TTF_OpenFont(FONT_FILE, 20);
+        font24 = TTF_OpenFont(FONT_FILE, 24);
+        font28 = TTF_OpenFont(FONT_FILE, 28);
+        font32 = TTF_OpenFont(FONT_FILE, 32);
+        if (font24 == null) throw runtime_error(string("Font not found: ") + FONT_FILE);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
