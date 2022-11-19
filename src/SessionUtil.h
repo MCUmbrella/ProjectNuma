@@ -12,6 +12,7 @@ class Session
 public:
     const char* FILE_NAME = "session.dat";
     int hp = 50;
+    int killboardTotal[4]{}; //TODO
     uint64_t credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
 
     void load()

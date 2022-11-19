@@ -5,6 +5,7 @@
 #ifndef PROJECTNUMA_VALUES_H
 #define PROJECTNUMA_VALUES_H
 
+#define null nullptr
 #define VERSION "ProjectNuma version alpha 0.0.1"
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900

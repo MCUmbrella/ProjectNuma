@@ -21,6 +21,7 @@
 #include "SoundManager.h"
 #include "SessionUtil.h"
 #include "UIComponent.h"
+#include "LevelUtil.h"
 
 typedef char EntityType;
 
@@ -315,6 +316,7 @@ private:
 public:
     GameState state = STATE_STARTUP;
     bool pressedKey[1024]{};
+    int killboardLevel[4]{};
 
     void startup();
 
@@ -352,7 +354,7 @@ public:
 
     void doStateLevels();
 
-    void doStateGame();
+    void doStateGame(Level* level);
 
     void doStateHangar();
 
@@ -583,6 +585,7 @@ Enemy0::Enemy0() : Entity()
         {
             playSound("assets/projectnuma/sounds/entity/hit.wav");
             session.credit++;
+            app->killboardLevel[0]++;
         }
     };
 }
@@ -627,6 +630,7 @@ Enemy1::Enemy1() : Entity()
         {
             playSound("assets/projectnuma/sounds/entity/enemyDie.wav");
             session.credit += 5;
+            app->killboardLevel[1]++;
         }
     };
 }
@@ -671,6 +675,7 @@ Enemy2::Enemy2() : Entity()
         {
             playSound("assets/projectnuma/sounds/entity/enemyDie.wav");
             session.credit += 10;
+            app->killboardLevel[2]++;
         }
     };
 }
@@ -716,6 +721,7 @@ Enemy3::Enemy3() : Entity()
         {
             playSound("assets/projectnuma/sounds/entity/bossDie.wav");
             session.credit += 50;
+            app->killboardLevel[3]++;
         }
     };
 }
@@ -1082,7 +1088,8 @@ void App::mainLoop()
             }
             case STATE_GAME:
             {
-                doStateGame();
+                Level defaultLevel;
+                doStateGame(&defaultLevel);
                 break;
             }
             case STATE_HANGAR:
@@ -1149,9 +1156,9 @@ void App::doStateLevels() //TODO
     ;
 }
 
-void App::doStateGame()
+void App::doStateGame(Level* level)
 {
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game");
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
     // initialize ui
     addUIComponent("version", RenderManager.getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
     addUIComponent("weapon indicator", RenderManager.getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
@@ -1166,43 +1173,51 @@ void App::doStateGame()
         if (pressedKey[SDL_SCANCODE_ESCAPE])
         {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
-            removeUIComponent("version", true);
-            removeUIComponent("weapon indicator", true);
-            removeUIComponent("hp indicator", true);
-            removeUIComponent("credit indicator", true);
-            for (const auto& a: entities)
-                if (a->type != ENTITY_TYPE_PLAYER)
-                {
-                    a->hp = 0;
-                    a->isDead = true;
-                }
-            cleanupEntities();
-            pressedKey[SDL_SCANCODE_ESCAPE] = false;
-            state = STATE_MENU;
-            return;
+            goto toMainMenu;
+        }
+        // check level goal
+        if (
+                killboardLevel[0] >= level->killGoal[0] ||
+                killboardLevel[1] >= level->killGoal[1] ||
+                killboardLevel[2] >= level->killGoal[2] ||
+                killboardLevel[3] >= level->killGoal[3]
+                )
+        {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Level passed: %s", level->name.c_str());
+            for (int i = 0; i != 4; i++) // move kill counts to total
+            {
+                session.killboardTotal[i] += killboardLevel[i];
+                killboardLevel[i] = 0;
+            }
+            memset(pressedKey, false, sizeof pressedKey); // reset keyboard
+            goto toMainMenu;
         }
         // randomly add enemies
-        if (r.nextInt(200) == 0)
+        if (r.nextDouble(1) <= level->spawnRateBase)
             switch (r.nextInt(4))
             {
                 case 0:
                 {
-                    addEntity((new Enemy0())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 24)));
+                    if (r.nextDouble(1) <= level->spawnRateEnemy0)
+                        addEntity((new Enemy0())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 24)));
                     break;
                 }
                 case 1:
                 {
-                    addEntity((new Enemy1())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 32)));
+                    if (r.nextDouble(1) <= level->spawnRateEnemy1)
+                        addEntity((new Enemy1())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 32)));
                     break;
                 }
                 case 2:
                 {
-                    addEntity((new Enemy2())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 40)));
+                    if (r.nextDouble(1) <= level->spawnRateEnemy2)
+                        addEntity((new Enemy2())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 40)));
                     break;
                 }
                 case 3:
                 {
-                    addEntity((new Enemy3())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 160)));
+                    if (r.nextDouble(1) <= level->spawnRateEnemy3)
+                        addEntity((new Enemy3())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 160)));
                     break;
                 }
             }
@@ -1233,6 +1248,17 @@ void App::doStateGame()
             cleanupEntities();
         SDL_Delay(16);
     }
+    toMainMenu:
+    removeUIComponent("version", true);
+    removeUIComponent("weapon indicator", true);
+    removeUIComponent("hp indicator", true);
+    removeUIComponent("credit indicator", true);
+    for (const auto& a: entities)
+        if (a->type != ENTITY_TYPE_PLAYER)
+            a->isDead = true;
+    cleanupEntities();
+    pressedKey[SDL_SCANCODE_ESCAPE] = false;
+    state = STATE_MENU;
 }
 
 void App::doStateHangar() //TODO
