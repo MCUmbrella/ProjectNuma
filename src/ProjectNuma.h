@@ -926,7 +926,7 @@ void App::startup()
     player->hp = session.hp;
     // completed
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "The game is ready");
-    state = STATE_MENU; //TODO: change this to STATE_MENU when completed doStateMenu()
+    state = STATE_MENU;
     mainLoop();
 }
 
