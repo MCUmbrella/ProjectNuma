@@ -2,8 +2,8 @@
 // Created by mcumbrella on 22-11-9.
 //
 
-#ifndef PROJECTNUMA_RANDOMUTIL_H
-#define PROJECTNUMA_RANDOMUTIL_H
+#ifndef PROJECTNUMA_RANDOM_H
+#define PROJECTNUMA_RANDOM_H
 
 #include <random>
 
@@ -30,4 +30,4 @@ public:
     }
 };
 
-#endif //PROJECTNUMA_RANDOMUTIL_H
+#endif //PROJECTNUMA_RANDOM_H

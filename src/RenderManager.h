@@ -6,21 +6,19 @@
 #define PROJECTNUMA_RENDERMANAGER_H
 
 static SDL_Texture* PLACEHOLDER_TEXTURE;
-static map<const char*, SDL_Texture*> textures;
 static SDL_Renderer* renderer = null;
 static SDL_Window* window = null;
-static TTF_Font* font16 = null;
-static TTF_Font* font20 = null;
-static TTF_Font* font24 = null;
-static TTF_Font* font28 = null;
-static TTF_Font* font32 = null;
-const static int
-        RENDERER_FLAGS = SDL_RENDERER_ACCELERATED,
-        WINDOW_FLAGS = 0;
 
 static class
 {
 private:
+    map<const char*, SDL_Texture*> textures;
+    TTF_Font* font16 = null;
+    TTF_Font* font24 = null;
+    TTF_Font* font32 = null;
+    TTF_Font* font40 = null;
+    TTF_Font* font48 = null;
+
     static SDL_Texture* surfaceToTexture(SDL_Surface* surface, bool destroySurface)
     {
         SDL_Texture* texture;
@@ -57,7 +55,7 @@ public:
      * Load a texture from file.
      * @param fileName The file path of the texture.
      */
-    static SDL_Texture* loadTexture(const char* fileName)
+    SDL_Texture* loadTexture(const char* fileName)
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
         SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
@@ -70,7 +68,7 @@ public:
      * Get the loaded texture by its path.
      * @param name The path of the texture file.
      */
-    static SDL_Texture* getTexture(const char* name)
+    SDL_Texture* getTexture(const char* name)
     {
         SDL_Texture* t = textures[name];
         if (t == null) throw runtime_error(string("Texture not found: ") + name);
@@ -83,7 +81,7 @@ public:
      * @param width The width that needs to be stretched to.
      * @param height The height that needs to be stretched to.
      */
-    static void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
+    void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
@@ -98,7 +96,7 @@ public:
      * Place a texture on the screen.
      * @param texture The pointer to the texture.
      */
-    static void placeTexture(SDL_Texture* texture, int x, int y)
+    void placeTexture(SDL_Texture* texture, int x, int y)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
@@ -117,7 +115,7 @@ public:
      * @param a Alpha value.
      * @param size FontSize: XS, S, M, L, XL.
      */
-    static SDL_Texture* getText(const char* text, uint8_t r, uint8_t g, uint8_t b, uint8_t a, FontSize size)
+    SDL_Texture* getText(const char* text, unsigned char r, unsigned char g, unsigned char b, unsigned char a, FontSize size)
     {
         if (text == null) throw runtime_error("Null pointer passed to getText()");
         SDL_Color color;
@@ -127,10 +125,10 @@ public:
         color.a = a;
         SDL_Surface* surface;
         surface = TTF_RenderUTF8_Blended(
-                size == FONT_SIZE_XL ? font32 :
-                size == FONT_SIZE_L ? font28 :
-                size == FONT_SIZE_M ? font24 :
-                size == FONT_SIZE_S ? font20 :
+                size == FONT_SIZE_XL ? font48 :
+                size == FONT_SIZE_L ? font40 :
+                size == FONT_SIZE_M ? font32 :
+                size == FONT_SIZE_S ? font24 :
                 font16,
                 text, color
         );
@@ -140,7 +138,7 @@ public:
     /**
      * Initialize the render manager.
      */
-    static void init()
+    void init()
     {
         // initialize sdl
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -154,8 +152,8 @@ public:
             exit(1);
         }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
-        window = SDL_CreateWindow(VERSION, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
-                                  WINDOW_HEIGHT, WINDOW_FLAGS);
+        window = SDL_CreateWindow(VERSION, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS);
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
         renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
         IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
@@ -164,18 +162,18 @@ public:
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: %s", FONT_FILE);
         font16 = TTF_OpenFont(FONT_FILE, 16);
-        font20 = TTF_OpenFont(FONT_FILE, 20);
         font24 = TTF_OpenFont(FONT_FILE, 24);
-        font28 = TTF_OpenFont(FONT_FILE, 28);
         font32 = TTF_OpenFont(FONT_FILE, 32);
-        if (font24 == null) throw runtime_error(string("Font not found: ") + FONT_FILE);
+        font40 = TTF_OpenFont(FONT_FILE, 40);
+        font48 = TTF_OpenFont(FONT_FILE, 48);
+        if (font16 == null) throw runtime_error(string("Font not found: ") + FONT_FILE);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
     }
 
     /**
      * Shutdown the render manager.
      */
-    static void shutdown()
+    void shutdown()
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is being shut down now");
         IMG_Quit();
