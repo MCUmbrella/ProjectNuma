@@ -103,22 +103,22 @@ public:
     /**
      * The codes to be executed before the tick() function.
      */
-    void (* beforeTick)(Entity* self) = null;
+    function<void(Entity* self)> beforeTick = null;
 
     /**
      * The codes to be executed after the tick() function.
      */
-    void (* afterTick)(Entity* self) = null;
+    function<void(Entity* self)> afterTick = null;
 
     /**
      * The code to be executed when the entity is added to the entities list.
      */
-    void (* onSpawn)(Entity* self) = null;
+    function<void(Entity* self)> onSpawn = null;
 
     /**
      * The code to be executed when the entity was killed.
      */
-    void (* onDeath)(Entity* self) = null;
+    function<void(Entity* self)> onDeath = null;
 };
 
 /**
@@ -566,7 +566,7 @@ Player::Player()
     };
     beforeTick = [](Entity* self) {
         Player* p = (Player*) self;
-        if (p->invincibleTicks >= 0) p->isInvincible = true;
+        if (p->invincibleTicks > 0) p->isInvincible = true;
         else p->isInvincible = false;
         if (p->isDead)
         {
@@ -633,16 +633,17 @@ Player::Player()
         }
     };
     afterTick = [](Entity* self) {
-        self->setLocation(
-                self->x + self->width > WINDOW_WIDTH ? WINDOW_WIDTH - self->width :
-                self->x < 0 ? 0 :
-                self->x,
-                self->y + self->height > WINDOW_HEIGHT ? WINDOW_HEIGHT - self->height :
-                self->y < 0 ? 0 :
-                self->y
+        Player* p = (Player*) self;
+        p->setLocation(
+                p->x + p->width > WINDOW_WIDTH ? WINDOW_WIDTH - p->width :
+                p->x < 0 ? 0 :
+                p->x,
+                p->y + p->height > WINDOW_HEIGHT ? WINDOW_HEIGHT - p->height :
+                p->y < 0 ? 0 :
+                p->y
         );
-        ((Player*) self)->speedModifier = 1.0;
-        ((Player*) self)->invincibleTicks--;
+        p->speedModifier = 1.0;
+        p->invincibleTicks -= p->invincibleTicks > 0 ? 1 : 0;
     };
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
@@ -1398,7 +1399,7 @@ void App::doStateGame(Level* level)
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
     currentLevel = level;
     // initialize ui
-    addUIComponent("version", getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
+    addUIComponent("level indicator", getText(level->name.c_str(), 255, 255, 0, 200, FONT_SIZE_M), 10, 10);
     addUIComponent("weapon indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
     addUIComponent("hp indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
     addUIComponent("credit indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
@@ -1485,19 +1486,20 @@ void App::doStateGame(Level* level)
             if (it->name == "weapon indicator")
                 it->setTexture(
                         getText(string("Weapon: ").append(player->weapon->name).c_str(),
-                                255, 255, 255, 127, FONT_SIZE_M), true);
+                                255, 255, 255, 200, FONT_SIZE_M), true);
             else if (it->name == "hp indicator")
                 it->setTexture(
                         getText(string("HP: ").append(to_string(player->hp)).c_str(),
-                                255, player->hp > 0 ? 255 : 0, player->hp > 0 ? 255 : 0, 127, FONT_SIZE_M), true);
+                                255 * (150 - player->invincibleTicks) / 150, player->hp > 0 ? 255 : 0,
+                                player->hp > 0 ? 255 : 0, 200, FONT_SIZE_M), true);
             else if (it->name == "credit indicator")
                 it->setTexture(
                         getText(string("Credit: ").append(to_string(session.credit)).c_str(),
-                                255, 255, 255, 127, FONT_SIZE_M), true);
+                                255, 255, 255, 200, FONT_SIZE_M), true);
             else if (it->name == "life indicator")
                 it->setTexture(
                         getText(string("Life: ").append(to_string(getPlayer()->life)).c_str(),
-                                255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 127,
+                                255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 200,
                                 FONT_SIZE_M), true);
         render();
         // clean up
@@ -1507,7 +1509,7 @@ void App::doStateGame(Level* level)
     }
     toMainMenu:
     // remove ui
-    removeUIComponent("version", true);
+    removeUIComponent("level indicator", true);
     removeUIComponent("weapon indicator", true);
     removeUIComponent("hp indicator", true);
     removeUIComponent("credit indicator", true);
