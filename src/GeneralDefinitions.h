@@ -2,14 +2,16 @@
 // Created by mcumbrella on 22-11-18.
 //
 
-#ifndef PROJECTNUMA_VALUES_H
-#define PROJECTNUMA_VALUES_H
+#ifndef PROJECTNUMA_GENERALDEFINITIONS_H
+#define PROJECTNUMA_GENERALDEFINITIONS_H
 
 #define null nullptr
 #define VERSION "ProjectNuma version alpha 0.0.1"
 #define FONT_FILE "assets/projectnuma/font/MesloLGS_NF_Regular.ttf"
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
+#define RENDERER_FLAGS SDL_RENDERER_ACCELERATED
+#define WINDOW_FLAGS 0
 #define ENTITY_TYPE_PLAYER '\x00'
 #define ENTITY_TYPE_ENEMY '\x01'
 #define ENTITY_TYPE_BULLET '\x02'
@@ -22,6 +24,7 @@
 #define SIDE_NONE 2147483647
 
 using namespace std;
+typedef unsigned char EntityType;
 
 const char* soundFiles[] = {
         "assets/projectnuma/sounds/ambient/click0.wav",
@@ -83,10 +86,10 @@ enum GameState
 enum FontSize
 {
     FONT_SIZE_XS, // 16pt
-    FONT_SIZE_S, // 20pt
-    FONT_SIZE_M, // 24pt
-    FONT_SIZE_L, // 28pt
-    FONT_SIZE_XL, // 32pt
+    FONT_SIZE_S, // 24pt
+    FONT_SIZE_M, // 32pt
+    FONT_SIZE_L, // 40pt
+    FONT_SIZE_XL, // 48pt
 };
 
-#endif //PROJECTNUMA_VALUES_H
+#endif //PROJECTNUMA_GENERALDEFINITIONS_H

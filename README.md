@@ -64,7 +64,7 @@ You're expected to experience various bugs or missing features.
 - Name: `Blaster`
 - Reload time: `100`
 - Bullet speed: `20`
-- Bullet damage: `13`
+- Bullet damage: `10`
 - Bullet size: `16 * 16`
 - Description: `Fire 36 bullets in all directions`
 ### Weapon 3

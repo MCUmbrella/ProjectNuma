@@ -2,8 +2,8 @@
 // Created by mcumbrella on 22-11-14.
 //
 
-#ifndef PROJECTNUMA_SESSIONUTIL_H
-#define PROJECTNUMA_SESSIONUTIL_H
+#ifndef PROJECTNUMA_SESSION_H
+#define PROJECTNUMA_SESSION_H
 
 #include <fstream>
 
@@ -13,7 +13,7 @@ public:
     const char* FILE_NAME = "session.dat";
     int hp = 50;
     int killboardTotal[4]{};
-    uint64_t credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
+    unsigned long credit = 0, unlockedWeapons = 1, unlockedLevels = 0;
 
     /**
      * Load player date from "session.dat".
@@ -48,4 +48,4 @@ public:
     }
 };
 
-#endif //PROJECTNUMA_SESSIONUTIL_H
+#endif //PROJECTNUMA_SESSION_H

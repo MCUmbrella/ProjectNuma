@@ -15,16 +15,14 @@
 #include <list>
 #include <stdexcept>
 #include <string>
-#include "Values.h"
+#include "GeneralDefinitions.h"
 #include "CommonUtil.h"
-#include "RandomUtil.h"
+#include "Random.h"
 #include "RenderManager.h"
 #include "SoundManager.h"
-#include "SessionUtil.h"
+#include "Session.h"
 #include "UIComponent.h"
 #include "LevelUtil.h"
-
-typedef char EntityType;
 
 // import static
 #define playSound SoundManager.playSound
@@ -103,22 +101,22 @@ public:
     /**
      * The codes to be executed before the tick() function.
      */
-    void (* beforeTick)(Entity* self) = null;
+    function<void(Entity* self)> beforeTick = null;
 
     /**
      * The codes to be executed after the tick() function.
      */
-    void (* afterTick)(Entity* self) = null;
+    function<void(Entity* self)> afterTick = null;
 
     /**
      * The code to be executed when the entity is added to the entities list.
      */
-    void (* onSpawn)(Entity* self) = null;
+    function<void(Entity* self)> onSpawn = null;
 
     /**
      * The code to be executed when the entity was killed.
      */
-    void (* onDeath)(Entity* self) = null;
+    function<void(Entity* self)> onDeath = null;
 };
 
 /**
@@ -247,7 +245,7 @@ public:
     {
         name = "Blaster";
         bulletSpeed = 20;
-        bulletDamage = 13;
+        bulletDamage = 10;
         reloadTicks = 100;
         bulletTexture = getTexture("assets/projectnuma/textures/entity/weapon2bullet.png");
     }
@@ -566,7 +564,7 @@ Player::Player()
     };
     beforeTick = [](Entity* self) {
         Player* p = (Player*) self;
-        if (p->invincibleTicks >= 0) p->isInvincible = true;
+        if (p->invincibleTicks > 0) p->isInvincible = true;
         else p->isInvincible = false;
         if (p->isDead)
         {
@@ -612,7 +610,7 @@ Player::Player()
         // press right-Alt to switch weapon
         if (app->pressedKey[SDL_SCANCODE_RALT])
         {
-            for (int i = 0; i != p->currentWeapons.size(); i++)
+            for (unsigned long i = 0; i != p->currentWeapons.size(); i++)
                 if (p->currentWeapons[i] == p->weapon)
                 {
                     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Switch weapon");
@@ -633,16 +631,17 @@ Player::Player()
         }
     };
     afterTick = [](Entity* self) {
-        self->setLocation(
-                self->x + self->width > WINDOW_WIDTH ? WINDOW_WIDTH - self->width :
-                self->x < 0 ? 0 :
-                self->x,
-                self->y + self->height > WINDOW_HEIGHT ? WINDOW_HEIGHT - self->height :
-                self->y < 0 ? 0 :
-                self->y
+        Player* p = (Player*) self;
+        p->setLocation(
+                p->x + p->width > WINDOW_WIDTH ? WINDOW_WIDTH - p->width :
+                p->x < 0 ? 0 :
+                p->x,
+                p->y + p->height > WINDOW_HEIGHT ? WINDOW_HEIGHT - p->height :
+                p->y < 0 ? 0 :
+                p->y
         );
-        ((Player*) self)->speedModifier = 1.0;
-        ((Player*) self)->invincibleTicks--;
+        p->speedModifier = 1.0;
+        p->invincibleTicks -= p->invincibleTicks > 0 ? 1 : 0;
     };
     onDeath = [](Entity* self) {
         playSound("assets/projectnuma/sounds/entity/playerDie.wav");
@@ -1113,7 +1112,7 @@ UIComponent* App::addUIComponent(string name, SDL_Texture* texture, int x, int y
 
 bool App::removeUIComponent(const UIComponent* c, bool freeTexture)
 {
-    for (int i = 0; i != ui.size(); i++)
+    for (unsigned long i = 0; i != ui.size(); i++)
         if (ui[i] == c)
         {
             SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Remove UI %s", ui[i]->name.c_str());
@@ -1127,7 +1126,7 @@ bool App::removeUIComponent(const UIComponent* c, bool freeTexture)
 
 bool App::removeUIComponent(const char* name, bool freeTexture)
 {
-    for (int i = 0; i != ui.size(); i++)
+    for (auto i = 0; i != ui.size(); i++)
         if (ui.at(i)->name == name)
         {
             if (freeTexture) ui[i]->setTexture(null, true);
@@ -1184,11 +1183,21 @@ bool App::showPrompt(const char* msg, bool showOptions)
     SDL_Texture* textTexture = getText(msg, 255, 255, 0, 255, FONT_SIZE_XL);
     SDL_Texture* yes = getText("[SPACE] Proceed", 200, 200, 200, 255, FONT_SIZE_L);
     SDL_Texture* no = getText("[ESC] Cancel", 200, 200, 200, 255, FONT_SIZE_L);
-    addUIComponent("prompt0", textTexture, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2, 400);
-    addUIComponent("prompt1", yes, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2,
-                   showOptions ? 450 : 1000);
-    addUIComponent("prompt2", no, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2,
-                   showOptions ? 500 : 1000);
+    SDL_Texture* textTextureShadow = getText(msg, 0, 0, 0, 127, FONT_SIZE_XL);
+    SDL_Texture* yesShadow = getText("[SPACE] Proceed", 0, 0, 0, 127, FONT_SIZE_L);
+    SDL_Texture* noShadow = getText("[ESC] Cancel", 0, 0, 0, 127, FONT_SIZE_L);
+    addUIComponent("prompt0s", textTextureShadow,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2 + 3, 403);
+    addUIComponent("prompt0", textTexture,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2, 400);
+    addUIComponent("prompt1s", yesShadow,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2 + 3, showOptions ? 463 : 1000);
+    addUIComponent("prompt1", yes,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2, showOptions ? 460 : 1000);
+    addUIComponent("prompt2s", noShadow,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2 + 3, showOptions ? 513 : 1000);
+    addUIComponent("prompt2", no,
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2, showOptions ? 510 : 1000);
     playSound("assets/projectnuma/sounds/ambient/msg.wav");
     for (;;)
     {
@@ -1199,6 +1208,9 @@ bool App::showPrompt(const char* msg, bool showOptions)
             removeUIComponent("prompt0", true);
             removeUIComponent("prompt1", true);
             removeUIComponent("prompt2", true);
+            removeUIComponent("prompt0s", true);
+            removeUIComponent("prompt1s", true);
+            removeUIComponent("prompt2s", true);
             resetKeyState();
             return true;
         }
@@ -1207,6 +1219,9 @@ bool App::showPrompt(const char* msg, bool showOptions)
             removeUIComponent("prompt0", true);
             removeUIComponent("prompt1", true);
             removeUIComponent("prompt2", true);
+            removeUIComponent("prompt0s", true);
+            removeUIComponent("prompt1s", true);
+            removeUIComponent("prompt2s", true);
             resetKeyState();
             return false;
         }
@@ -1298,18 +1313,18 @@ void App::doStateMenu()
     SDL_Texture* aboutText = getText("ABOUT", 255, 255, 255, 255, FONT_SIZE_XL);
     SDL_Texture* aboutSelected = getText("ABOUT", 0, 255, 0, 255, FONT_SIZE_XL);
 
-    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 200);
+    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 150);
 
     UIComponent* startUI = addUIComponent("start", startGameText,
-                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGameText) / 2, 500);
+                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(startGameText) / 2, 450);
     UIComponent* quitUI = addUIComponent("quit", quitGameText,
-                                         WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGameText) / 2, 550);
+                                         WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(quitGameText) / 2, 510);
     UIComponent* hangarUI = addUIComponent("hangar", hangarText,
-                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(hangarText) / 2, 600);
+                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(hangarText) / 2, 570);
     UIComponent* settingsUI = addUIComponent("settings", settingsText,
-                                             WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(settingsText) / 2, 650);
+                                             WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(settingsText) / 2, 630);
     UIComponent* aboutUI = addUIComponent("about", aboutText,
-                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(aboutText) / 2, 700);
+                                          WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(aboutText) / 2, 690);
 
     function<void()> removeUI = [&]() {
         removeUIComponent("logo", false);
@@ -1398,17 +1413,17 @@ void App::doStateGame(Level* level)
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
     currentLevel = level;
     // initialize ui
-    addUIComponent("version", getText(VERSION, 127, 255, 255, 255, FONT_SIZE_M), 10, 10);
-    addUIComponent("weapon indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 40);
-    addUIComponent("hp indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 70);
-    addUIComponent("credit indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 100);
-    addUIComponent("life indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_M), 10, 130);
+    addUIComponent("level indicator", getText(level->name.c_str(), 255, 255, 0, 200, FONT_SIZE_S), 10, 10);
+    addUIComponent("weapon indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 40);
+    addUIComponent("hp indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 70);
+    addUIComponent("credit indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 100);
+    addUIComponent("life indicator", getText("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 130);
     getPlayer()->life = level->playerLife;
     getPlayer()->hp = getPlayer()->maxHp;
     getPlayer()->isDead = false;
     getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
     setBGM("assets/projectnuma/sounds/music/game/0.ogg");
-    for (uint64_t tick = 0;; tick++)
+    for (unsigned long tick = 0;; tick++)
     {
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_ESCAPE])
@@ -1485,20 +1500,21 @@ void App::doStateGame(Level* level)
             if (it->name == "weapon indicator")
                 it->setTexture(
                         getText(string("Weapon: ").append(player->weapon->name).c_str(),
-                                255, 255, 255, 127, FONT_SIZE_M), true);
+                                255, 255, 255, 200, FONT_SIZE_S), true);
             else if (it->name == "hp indicator")
                 it->setTexture(
                         getText(string("HP: ").append(to_string(player->hp)).c_str(),
-                                255, player->hp > 0 ? 255 : 0, player->hp > 0 ? 255 : 0, 127, FONT_SIZE_M), true);
+                                255 * (150 - player->invincibleTicks) / 150, player->hp > 0 ? 255 : 0,
+                                player->hp > 0 ? 255 : 0, 200, FONT_SIZE_S), true);
             else if (it->name == "credit indicator")
                 it->setTexture(
                         getText(string("Credit: ").append(to_string(session.credit)).c_str(),
-                                255, 255, 255, 127, FONT_SIZE_M), true);
+                                255, 255, 255, 200, FONT_SIZE_S), true);
             else if (it->name == "life indicator")
                 it->setTexture(
                         getText(string("Life: ").append(to_string(getPlayer()->life)).c_str(),
-                                255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 127,
-                                FONT_SIZE_M), true);
+                                255, player->life == 0 ? 0 : 255, player->life == 0 ? 0 : 255, 200,
+                                FONT_SIZE_S), true);
         render();
         // clean up
         if (tick % 100 == 0)
@@ -1507,7 +1523,7 @@ void App::doStateGame(Level* level)
     }
     toMainMenu:
     // remove ui
-    removeUIComponent("version", true);
+    removeUIComponent("level indicator", true);
     removeUIComponent("weapon indicator", true);
     removeUIComponent("hp indicator", true);
     removeUIComponent("credit indicator", true);
@@ -1530,20 +1546,20 @@ void App::doStateHangar()
 {
     addUIComponent("hangar", getText("Hangar", 255, 255, 0, 255, FONT_SIZE_XL), 20, 20);
     addUIComponent("back", getText("[Esc] Go back", 255, 255, 255, 255, FONT_SIZE_L), 20, 850);
-    SDL_Texture* w1 = getText("Shotgun (600CR)", 255, 255, 255, 255, FONT_SIZE_L);
-    SDL_Texture* w2 = getText("Blaster (2000CR)", 255, 255, 255, 255, FONT_SIZE_L);
-    SDL_Texture* w3 = getText("Laser cannon (2000CR)", 255, 255, 255, 255, FONT_SIZE_L);
-    SDL_Texture* hp = getText("+10 max HP (1880CR)", 255, 255, 255, 255, FONT_SIZE_L);
+    SDL_Texture* w1 = getText("Shotgun (600CR)", 255, 255, 255, 255, FONT_SIZE_M);
+    SDL_Texture* w2 = getText("Blaster (2000CR)", 255, 255, 255, 255, FONT_SIZE_M);
+    SDL_Texture* w3 = getText("Laser cannon (2000CR)", 255, 255, 255, 255, FONT_SIZE_M);
+    SDL_Texture* hp = getText("+10 max HP (1880CR)", 255, 255, 255, 255, FONT_SIZE_M);
 
-    SDL_Texture* w1s = getText("Shotgun (600CR)", 0, 255, 0, 255, FONT_SIZE_L);
-    SDL_Texture* w2s = getText("Blaster (2000CR)", 0, 255, 0, 255, FONT_SIZE_L);
-    SDL_Texture* w3s = getText("Laser cannon (2000CR)", 0, 255, 0, 255, FONT_SIZE_L);
-    SDL_Texture* hps = getText("+10 max HP (1880CR)", 0, 255, 0, 255, FONT_SIZE_L);
+    SDL_Texture* w1s = getText("Shotgun (600CR)", 0, 255, 0, 255, FONT_SIZE_M);
+    SDL_Texture* w2s = getText("Blaster (2000CR)", 0, 255, 0, 255, FONT_SIZE_M);
+    SDL_Texture* w3s = getText("Laser cannon (2000CR)", 0, 255, 0, 255, FONT_SIZE_M);
+    SDL_Texture* hps = getText("+10 max HP (1880CR)", 0, 255, 0, 255, FONT_SIZE_M);
 
-    UIComponent* w1ui = addUIComponent("w1", w1, 50, 70);
-    UIComponent* w2ui = addUIComponent("w2", w2, 50, 110);
-    UIComponent* w3ui = addUIComponent("w3", w3, 50, 150);
-    UIComponent* hpui = addUIComponent("hp", hp, 50, 190);
+    UIComponent* w1ui = addUIComponent("w1", w1, 50, 80);
+    UIComponent* w2ui = addUIComponent("w2", w2, 50, 120);
+    UIComponent* w3ui = addUIComponent("w3", w3, 50, 160);
+    UIComponent* hpui = addUIComponent("hp", hp, 50, 200);
     UIComponent* cr = addUIComponent("credit", getText("A", 255, 255, 255, 255, FONT_SIZE_L), 20, 800);
 
     int selection = 0;

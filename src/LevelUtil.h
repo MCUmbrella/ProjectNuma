@@ -18,7 +18,7 @@ public:
     double spawnRateEnemy1 = 0.4;
     double spawnRateEnemy2 = 0.25;
     double spawnRateEnemy3 = 0.05;
-    uint64_t id = 0;
+    unsigned long id = 0;
     string name = "Unnamed level";
 };
 
