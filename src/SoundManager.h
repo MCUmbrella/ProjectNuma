@@ -129,9 +129,9 @@ public:
         }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
         Mix_AllocateChannels(64);
-        for (const char* a: soundFiles)
+        for (const char* a : soundFiles)
             loadSound(a);
-        for (const char* a: musicFiles)
+        for (const char* a : musicFiles)
             loadMusic(a);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager initialization completed");
     }

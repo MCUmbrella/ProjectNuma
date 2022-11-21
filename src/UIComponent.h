@@ -8,8 +8,9 @@
 class UIComponent
 {
 public:
-    SDL_Texture* texture = null;
+    bool freeTextureOnDestruct = false;
     int x = 0, y = 0;
+    SDL_Texture* texture = null;
     string name;
 
     UIComponent* setTexture(SDL_Texture* newTexture, bool freeOldTexture)
@@ -27,12 +28,19 @@ public:
         return this;
     }
 
-    UIComponent(string name, SDL_Texture* t, int x, int y)
+    UIComponent(string name, SDL_Texture* t, int x, int y, bool freeTextureOnDestruct)
     {
-        this->name = move(name);
+        this->name = std::move(name);
         texture = t;
         this->x = x;
         this->y = y;
+        this->freeTextureOnDestruct = freeTextureOnDestruct;
+    }
+
+    ~UIComponent()
+    {
+        if (freeTextureOnDestruct)
+            SDL_DestroyTexture(texture);
     }
 };
 

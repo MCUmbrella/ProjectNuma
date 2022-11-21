@@ -115,9 +115,9 @@ public:
      * @param a Alpha value.
      * @param size FontSize: XS, S, M, L, XL.
      */
-    SDL_Texture* getText(const char* text, unsigned char r, unsigned char g, unsigned char b, unsigned char a, FontSize size)
+    SDL_Texture* textToTexture(const char* text, unsigned char r, unsigned char g, unsigned char b, unsigned char a, FontSize size)
     {
-        if (text == null) throw runtime_error("Null pointer passed to getText()");
+        if (text == null) throw runtime_error("Null pointer passed to textToTexture()");
         SDL_Color color;
         color.r = r;
         color.g = g;
@@ -153,11 +153,11 @@ public:
         }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
         window = SDL_CreateWindow(VERSION, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS);
+                                  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS | (flFullscreen ? SDL_WINDOW_FULLSCREEN : 0));
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-        renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
+        renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS | (flSoftwareRender ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED));
         IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
-        for (const char* a: textureFiles)
+        for (const char* a : textureFiles)
             loadTexture(a);
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: %s", FONT_FILE);

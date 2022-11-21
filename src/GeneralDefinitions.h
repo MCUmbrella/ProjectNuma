@@ -10,7 +10,7 @@
 #define FONT_FILE "assets/projectnuma/font/MesloLGS_NF_Regular.ttf"
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
-#define RENDERER_FLAGS SDL_RENDERER_ACCELERATED
+#define RENDERER_FLAGS 0
 #define WINDOW_FLAGS 0
 #define ENTITY_TYPE_PLAYER '\x00'
 #define ENTITY_TYPE_ENEMY '\x01'
@@ -25,12 +25,11 @@
 
 using namespace std;
 typedef unsigned char EntityType;
+bool flDebug = false, flFullscreen = false, flSoftwareRender = false;
 
 const char* soundFiles[] = {
-        "assets/projectnuma/sounds/ambient/click0.wav",
         "assets/projectnuma/sounds/ambient/explode0.wav",
         "assets/projectnuma/sounds/ambient/explode1.wav",
-        "assets/projectnuma/sounds/ambient/msg.wav",
         "assets/projectnuma/sounds/ambient/warn.wav",
         "assets/projectnuma/sounds/ambient/weaponLoad.wav",
         "assets/projectnuma/sounds/entity/bossDie.wav",
@@ -44,7 +43,9 @@ const char* soundFiles[] = {
         "assets/projectnuma/sounds/item/weapon1e.wav",
         "assets/projectnuma/sounds/item/weapon2.wav",
         "assets/projectnuma/sounds/item/weapon2e.wav",
-        "assets/projectnuma/sounds/item/weapon3.wav"
+        "assets/projectnuma/sounds/item/weapon3.wav",
+        "assets/projectnuma/sounds/misc/click0.wav",
+        "assets/projectnuma/sounds/misc/msg.wav",
 };
 
 const char* musicFiles[] = {
