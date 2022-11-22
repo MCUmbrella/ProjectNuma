@@ -9,6 +9,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
+#include <cassert>
 #include <functional>
 #include <map>
 #include <memory>
@@ -338,6 +339,7 @@ public:
     GameState state = STATE_STARTUP;
     bool pressedKey[1024]{};
     int killboardLevel[4]{};
+    int enemyCounter[4]{};
     Level* currentLevel = null;
 
     /**
@@ -689,6 +691,9 @@ Enemy0::Enemy0() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy0.png");
     weapon = app->getWeapon("EnemyWeapon0");
     name = "Turret";
+    onSpawn = [](Entity* self) {
+        app->enemyCounter[0]++;
+    };
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
@@ -707,9 +712,9 @@ Enemy0::Enemy0() : Entity()
         if (self->x >= 0 && self->y >= 0 && self->x + self->width <= WINDOW_WIDTH && self->y + self->height <= WINDOW_HEIGHT)
         {
             playSound("assets/projectnuma/sounds/entity/hit.wav");
-            session.credit++;
             app->killboardLevel[0]++;
         }
+        app->enemyCounter[0]--;
     };
 }
 
@@ -731,6 +736,9 @@ Enemy1::Enemy1() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy1.png");
     weapon = app->getWeapon("EnemyWeapon1");
     name = "Enemy Fighter";
+    onSpawn = [](Entity* self) {
+        app->enemyCounter[1]++;
+    };
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
@@ -755,6 +763,7 @@ Enemy1::Enemy1() : Entity()
             session.credit += 5;
             app->killboardLevel[1]++;
         }
+        app->enemyCounter[1]--;
     };
 }
 
@@ -776,6 +785,9 @@ Enemy2::Enemy2() : Entity()
     texture = getTexture("assets/projectnuma/textures/entity/enemy2.png");
     weapon = app->getWeapon("EnemyWeapon1");
     name = "Enemy armored fighter";
+    onSpawn = [](Entity* self) {
+        app->enemyCounter[2]++;
+    };
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
@@ -800,6 +812,7 @@ Enemy2::Enemy2() : Entity()
             session.credit += 10;
             app->killboardLevel[2]++;
         }
+        app->enemyCounter[2]--;
     };
 }
 
@@ -823,6 +836,7 @@ Enemy3::Enemy3() : Entity()
     onSpawn = [](Entity* self) {
         playSound("assets/projectnuma/sounds/ambient/warn.wav");
         self->isInvincible = true;
+        app->enemyCounter[3]++;
     };
     afterTick = [](Entity* self) {
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
@@ -846,6 +860,7 @@ Enemy3::Enemy3() : Entity()
             session.credit += 50;
             app->killboardLevel[3]++;
         }
+        app->enemyCounter[3]--;
     };
 }
 
@@ -1267,7 +1282,7 @@ void App::mainLoop()
             }
             case STATE_GAME:
             {
-                Level defaultLevel = LevelUtil.loadLevel("assets/projectnuma/levels/infinite.level");
+                Level defaultLevel = LevelUtil.loadLevel("assets/projectnuma/levels/infiniteNormal.level");
                 doStateGame(&defaultLevel);
                 break;
             }
@@ -1430,8 +1445,9 @@ void App::doStateGame(Level* level)
     getPlayer()->isDead = false;
     getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
     setBGM("assets/projectnuma/sounds/music/game/0.ogg");
-    for (unsigned long tick = 0;; tick++)
+    for (unsigned long tick = 0, time0 = 0, time1 = 0; (time0 = CommonUtil.currentTimeNanos()); tick++)
     {
+        assert(enemyCounter[0] >= 0 && enemyCounter[1] >= 0 && enemyCounter[2] >= 0 && enemyCounter[3] >= 0);
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_ESCAPE])
         {
@@ -1467,30 +1483,30 @@ void App::doStateGame(Level* level)
         }
 
         // randomly add enemies
-        if (r.nextDouble(1) <= level->spawnRateBase)
+        if (r.nextDouble(1) <= level->randomSpawnSpeed)
             switch (r.nextInt(4))
             {
                 case 0:
                 {
-                    if (r.nextDouble(1) <= level->spawnRateEnemy0)
+                    if (enemyCounter[0] < level->maxEnemiesInScreen[0] && r.nextDouble(1) <= level->enemySpawnRate[0])
                         addEntity((new Enemy0())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 24)));
                     break;
                 }
                 case 1:
                 {
-                    if (r.nextDouble(1) <= level->spawnRateEnemy1)
+                    if (enemyCounter[1] < level->maxEnemiesInScreen[1] && r.nextDouble(1) <= level->enemySpawnRate[1])
                         addEntity((new Enemy1())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 32)));
                     break;
                 }
                 case 2:
                 {
-                    if (r.nextDouble(1) <= level->spawnRateEnemy2)
+                    if (enemyCounter[2] < level->maxEnemiesInScreen[2] && r.nextDouble(1) <= level->enemySpawnRate[2])
                         addEntity((new Enemy2())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 40)));
                     break;
                 }
                 case 3:
                 {
-                    if (r.nextDouble(1) <= level->spawnRateEnemy3)
+                    if (enemyCounter[3] < level->maxEnemiesInScreen[3] && r.nextDouble(1) <= level->enemySpawnRate[3])
                         addEntity((new Enemy3())->setLocation(WINDOW_WIDTH, r.nextInt(WINDOW_HEIGHT - 160)));
                     break;
                 }
@@ -1526,7 +1542,8 @@ void App::doStateGame(Level* level)
         // clean up
         if (tick % 100 == 0)
             cleanupEntities();
-        SDL_Delay(16);
+        time1 = CommonUtil.currentTimeNanos();
+        SDL_Delay(16 - MIN(16LU, (time1 - time0) / 1000000));
     }
     toMainMenu:
     // remove ui
@@ -1540,6 +1557,8 @@ void App::doStateGame(Level* level)
         session.killboardTotal[i] += killboardLevel[i];
         killboardLevel[i] = 0;
     }
+    memset(enemyCounter, 0, sizeof(enemyCounter));
+    assert(entities.size() == 1);
     resetKeyState();
     currentLevel = null;
     state = STATE_MENU;
