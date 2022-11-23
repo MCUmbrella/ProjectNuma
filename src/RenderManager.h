@@ -19,6 +19,7 @@ private:
     TTF_Font* font40 = null;
     TTF_Font* font48 = null;
 
+public:
     static SDL_Texture* surfaceToTexture(SDL_Surface* surface, bool destroySurface)
     {
         SDL_Texture* texture;
@@ -28,7 +29,6 @@ private:
         return texture;
     }
 
-public:
     /**
      * Get the width of a texture.
      */

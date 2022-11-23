@@ -1240,6 +1240,7 @@ bool App::showPrompt(const char* msg, bool showHints)
     addUIComponent(item[5], no,
                    WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2, showHints ? 510 : 1000, true);
     playSound("assets/projectnuma/sounds/misc/msg.wav");
+    //TODO: darken the screen when displaying prompt
     for (;;)
     {
         resetKeyState();
@@ -1251,7 +1252,7 @@ bool App::showPrompt(const char* msg, bool showHints)
             resetKeyState();
             return true;
         }
-        else if (pressedKey[SDL_SCANCODE_ESCAPE])
+        else if (pressedKey[SDL_SCANCODE_ESCAPE] || pressedKey[SDL_SCANCODE_BACKSPACE])
         {
             for (const char* s : item)
                 removeUIComponent(s);
@@ -1331,11 +1332,9 @@ int App::showOptions(initializer_list<string> args, int x, int y, unsigned char 
 
 void App::cleanupEntities()
 {
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Cleaning up entities (%zd remaining)", entities.size());
     entities.remove_if(
             [](const shared_ptr<Entity>& e) { return e->isDead && e->type != ENTITY_TYPE_PLAYER; }
     );
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Cleanup completed (%zd left)", entities.size());
 }
 
 void App::mainLoop()
@@ -1414,7 +1413,7 @@ void App::doStateMenu()
             textToTexture("ABOUT", 0, 255, 0, 255, FONT_SIZE_XL),
     };
 
-    //addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 150, false);
+    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 150, false);
 
     UIComponent* startUI = addUIComponent("start", item[0],
                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(item[0]) / 2, 450, true);
@@ -1535,6 +1534,7 @@ void App::doStateGame(Level* level)
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
                 goto toMainMenu;
             }
+            time0 = CommonUtil.currentTimeNanos();
         }
         // check level goal
         if (
@@ -1619,10 +1619,14 @@ void App::doStateGame(Level* level)
                                       FONT_SIZE_S), true);
         render();
         // clean up
-        if (tick % 100 == 0)
+        if (tick % 10 == 0)
             cleanupEntities();
         time1 = CommonUtil.currentTimeNanos();
+        if (time1 - time0 > 16000000LU)
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                        "Can't keep up! Is the game overloaded or the system time has changed?\n\tA single tick took %lu ns", time1 - time0);
         SDL_Delay(16 - MIN(16LU, (time1 - time0) / 1000000));
+        //SDL_Delay(16);
     }
     toMainMenu:
     // remove ui
