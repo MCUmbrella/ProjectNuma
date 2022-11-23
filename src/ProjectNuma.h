@@ -408,7 +408,7 @@ public:
     /**
      * Clear the UI list.
      */
-    void clearUI();
+    void clearAllUI();
 
     /**
      * Add an entity to the entities list.
@@ -425,12 +425,24 @@ public:
     void render();
 
     /**
-     * Show a prompt with options on the screen.
+     * Show a prompt (with 'proceed' and 'cancel' options or not) on the screen.
      * @param msg The message to show.
-     * @param showOptions Whether to show "[SPACE] Proceed, [Esc] Cancel".
+     * @param showHints Whether to show "[SPACE] Proceed, [Esc] Cancel" under the message.
      * @return true if the prompt is proceeded, false if the prompt is cancelled.
      */
-    bool showPrompt(const char* msg, bool showOptions);
+    bool showPrompt(const char* msg, bool showHints);
+
+    /**
+     * Show a list of options.
+     * Press arrow keys, W, S to move between selections, and select one by pressing SPACE.
+     * @param args The texts of the options.
+     * @param x The X location of the start of the option texts.
+     * @param y The Y location of the start of the option texts.
+     * @param alignMode 0: left, 1: center align to X, 2: right align to X.
+     * @param fontSize The size of the option texts.
+     * @return The index of the selected option (start with 0).
+     */
+    int showOptions(initializer_list<string> args, int x, int y, unsigned char alignMode, FontSize fontSize);
 
     /**
      * Remove all the dead entities.
@@ -1159,7 +1171,7 @@ bool App::removeUIComponent(const char* name)
     return false;
 }
 
-void App::clearUI()
+void App::clearAllUI()
 {
     for (UIComponent* u : ui)
         delete u;
@@ -1206,7 +1218,7 @@ void App::render()
     SDL_RenderPresent(renderer);
 }
 
-bool App::showPrompt(const char* msg, bool showOptions)
+bool App::showPrompt(const char* msg, bool showHints)
 {
     const char* item[] = {"msgShadow", "msg", "yesShadow", "yes", "noShadow", "no"};
     SDL_Texture* textTexture = textToTexture(msg, 255, 255, 0, 255, FONT_SIZE_XL);
@@ -1220,13 +1232,13 @@ bool App::showPrompt(const char* msg, bool showOptions)
     addUIComponent(item[1], textTexture,
                    WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(textTexture) / 2, 400, true);
     addUIComponent(item[2], yesShadow,
-                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2 + 3, showOptions ? 463 : 1000, true);
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2 + 3, showHints ? 463 : 1000, true);
     addUIComponent(item[3], yes,
-                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2, showOptions ? 460 : 1000, true);
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(yes) / 2, showHints ? 460 : 1000, true);
     addUIComponent(item[4], noShadow,
-                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2 + 3, showOptions ? 513 : 1000, true);
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2 + 3, showHints ? 513 : 1000, true);
     addUIComponent(item[5], no,
-                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2, showOptions ? 510 : 1000, true);
+                   WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(no) / 2, showHints ? 510 : 1000, true);
     playSound("assets/projectnuma/sounds/misc/msg.wav");
     for (;;)
     {
@@ -1246,6 +1258,72 @@ bool App::showPrompt(const char* msg, bool showOptions)
             resetKeyState();
             return false;
         }
+        render();
+        SDL_Delay(50);
+    }
+}
+
+int App::showOptions(initializer_list<string> args, int x, int y, unsigned char alignMode, FontSize fontSize)
+{
+    if (args.size() == 0) return 0;
+    alignMode = alignMode % 3;
+    vector<SDL_Texture*> optionText;
+    vector<SDL_Texture*> optionTextS;
+    vector<UIComponent*> optionUI;
+    for (const string& s : args) // generate text textures
+    {
+        optionText.emplace_back(textToTexture(s.c_str(), 255, 255, 255, 255, fontSize));
+        optionTextS.emplace_back(textToTexture(s.c_str(), 0, 255, 0, 255, fontSize));
+    }
+    for (int i = 0; i != args.size(); i++) // generate text UIs
+        optionUI.emplace_back(addUIComponent(
+                string("option").append(to_string(i)), optionText[i],
+                alignMode == 2 ? x - RenderManager.getTextureWidth(optionText[i]) :
+                alignMode == 1 ? x - RenderManager.getTextureWidth(optionText[i]) / 2
+                               : x,
+                y + i * (fontSize == FONT_SIZE_XL ? 60 :
+                         fontSize == FONT_SIZE_L ? 50 :
+                         fontSize == FONT_SIZE_M ? 40 :
+                         fontSize == FONT_SIZE_S ? 30 :
+                         20),
+                false)
+        );
+    function<void()> removeUI = [&]() {
+        for (int i = 0; i != args.size(); i++)
+            removeUIComponent(string("option").append(to_string(i)).c_str());
+        for (auto t : optionText) SDL_DestroyTexture(t);
+        for (auto t : optionTextS) SDL_DestroyTexture(t);
+        resetKeyState();
+    };
+    playSound("assets/projectnuma/sounds/misc/msg.wav");
+    int selection = 0;
+    for (;;)
+    {
+        doSDLEvents();
+        if (pressedKey[SDL_SCANCODE_S] || pressedKey[SDL_SCANCODE_DOWN])
+        {
+            if (selection == args.size() - 1) selection = 0;
+            else selection++;
+            resetKeyState();
+        }
+        else if (pressedKey[SDL_SCANCODE_W] || pressedKey[SDL_SCANCODE_UP])
+        {
+            if (selection == 0) selection = args.size() - 1;
+            else selection--;
+            resetKeyState();
+        }
+        else if (pressedKey[SDL_SCANCODE_SPACE] || pressedKey[SDL_SCANCODE_RETURN])
+        {
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Selected %d (%s)", selection, optionUI[selection]->name.c_str());
+            removeUI();
+            return selection;
+        }
+
+        // highlight the selected option
+        for (int i = 0; i != args.size(); i++)
+            optionUI[i]->setTexture(optionText[i], false);
+        optionUI[selection]->setTexture(optionTextS[selection], false);
+
         render();
         SDL_Delay(50);
     }
@@ -1336,7 +1414,7 @@ void App::doStateMenu()
             textToTexture("ABOUT", 0, 255, 0, 255, FONT_SIZE_XL),
     };
 
-    addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 150, false);
+    //addUIComponent("logo", logo, WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(logo) / 2, 150, false);
 
     UIComponent* startUI = addUIComponent("start", item[0],
                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(item[0]) / 2, 450, true);
@@ -1350,7 +1428,7 @@ void App::doStateMenu()
                                           WINDOW_WIDTH / 2 - RenderManager.getTextureWidth(item[4]) / 2, 690, true);
 
     function<void()> removeUI = [&]() {
-        clearUI();
+        clearAllUI();
         for (SDL_Texture* t : item)
             SDL_DestroyTexture(t);
         for (SDL_Texture* t : itemSelected)
@@ -1402,8 +1480,9 @@ void App::doStateMenu()
                 }
                 case 4: // about
                 {
-                    showPrompt("This feature has not been implemented yet", true);
-                    break;
+                    removeUI();
+                    state = STATE_ABOUT;
+                    return;
                 }
             }
         }
@@ -1547,7 +1626,7 @@ void App::doStateGame(Level* level)
     }
     toMainMenu:
     // remove ui
-    clearUI();
+    clearAllUI();
     for (const auto& a : entities) // remove all entities
         if (a->type != ENTITY_TYPE_PLAYER)
             a->isDead = true;
@@ -1594,7 +1673,7 @@ void App::doStateHangar()
         doSDLEvents();
         if (pressedKey[SDL_SCANCODE_ESCAPE])
         {
-            clearUI();
+            clearAllUI();
             for (SDL_Texture* t : item)
                 SDL_DestroyTexture(t);
             for (SDL_Texture* t : itemSelected)
@@ -1740,6 +1819,9 @@ void App::doStateSettings()
 void App::doStateAbout()
 {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Show about page");
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%d",
+                showOptions({"This", "feature", "has", "not", "been", "implemented", "yet"}, 200, 200, 0, FONT_SIZE_XL));
+    state = STATE_MENU;
 }
 
 // FUNCTION DEFINITIONS END ============================================================================================
