@@ -93,4 +93,14 @@ enum FontSize
     FONT_SIZE_XL, // 48pt
 };
 
+class Entity;
+
+class Player;
+
+class Bullet;
+
+class Weapon;
+
+class App;
+
 #endif //PROJECTNUMA_GENERALDEFINITIONS_H
