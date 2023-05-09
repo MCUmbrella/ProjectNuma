@@ -3,9 +3,9 @@
 //
 
 #include "Entity.h"
-#include "App.h"
-#include "CommonUtil.h"
-#include "SoundManager.h"
+#include "../App.h"
+#include "../CommonUtil.h"
+#include "../SoundManager.h"
 #include "Player.h"
 #include "Bullet.h"
 

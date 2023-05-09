@@ -3,14 +3,13 @@
 //
 
 #include "Enemies.h"
-#include "App.h"
-#include "RenderManager.h"
-#include "SoundManager.h"
-#include "Random.h"
-#include "CommonUtil.h"
-#include "Player.h"
-#include "Weapon.h"
-#include "Session.h"
+#include "../../App.h"
+#include "../../RenderManager.h"
+#include "../../SoundManager.h"
+#include "../../Random.h"
+#include "../Player.h"
+#include "../../weapon/Weapon.h"
+#include "../../Session.h"
 
 Enemy0::Enemy0()
 {

@@ -5,7 +5,7 @@
 #ifndef PROJECTNUMA_PLAYERWEAPONS_H
 #define PROJECTNUMA_PLAYERWEAPONS_H
 
-#include "GeneralDefinitions.h"
+#include "../GeneralDefinitions.h"
 #include "Weapon.h"
 
 /**

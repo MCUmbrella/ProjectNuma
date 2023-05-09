@@ -7,11 +7,11 @@
 #include "SoundManager.h"
 #include "Session.h"
 #include "Random.h"
-#include "Player.h"
-#include "Enemies.h"
-#include "Weapon.h"
-#include "PlayerWeapons.h"
-#include "EnemyWeapons.h"
+#include "entity/Player.h"
+#include "entity/enemy/Enemies.h"
+#include "weapon/Weapon.h"
+#include "weapon/PlayerWeapons.h"
+#include "weapon/EnemyWeapons.h"
 #include "CommonUtil.h"
 
 map<string, Weapon*> weapons;
@@ -283,8 +283,8 @@ int App::showOptions(initializer_list<string> args, int x, int y, unsigned char 
     vector<UIComponent*> optionUI;
     for (const string& s : args) // generate text textures
     {
-        optionText.emplace_back(renderManager->textToTexture(s.c_str(), 255, 255, 255, 255, fontSize));
-        optionTextS.emplace_back(renderManager->textToTexture(s.c_str(), 0, 255, 0, 255, fontSize));
+        optionText.emplace_back(renderManager->textToTexture(s, 255, 255, 255, 255, fontSize));
+        optionTextS.emplace_back(renderManager->textToTexture(s, 0, 255, 0, 255, fontSize));
     }
     for (size_t i = 0; i != args.size(); i++) // generate text UIs
         optionUI.emplace_back(addUIComponent(
@@ -523,7 +523,7 @@ void App::doStateGame(Level* level)
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Entering main game\n\tUsing level: %s", level->name.c_str());
     currentLevel = level;
     // initialize ui
-    addUIComponent("level indicator", renderManager->textToTexture(level->name.c_str(), 255, 255, 0, 200, FONT_SIZE_S), 10, 10, true);
+    addUIComponent("level indicator", renderManager->textToTexture(level->name, 255, 255, 0, 200, FONT_SIZE_S), 10, 10, true);
     addUIComponent("weapon indicator", renderManager->textToTexture("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 40, true);
     addUIComponent("hp indicator", renderManager->textToTexture("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 70, true);
     addUIComponent("credit indicator", renderManager->textToTexture("A", 255, 255, 255, 255, FONT_SIZE_S), 10, 100, true);

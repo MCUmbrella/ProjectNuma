@@ -3,7 +3,7 @@
 //
 
 #include "Bullet.h"
-#include "RenderManager.h"
+#include "../RenderManager.h"
 
 Bullet::Bullet(Entity* owner, int damage, int width, int height, double x, double y, double speed, double facing)
 {

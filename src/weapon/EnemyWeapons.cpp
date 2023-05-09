@@ -3,11 +3,11 @@
 //
 
 #include "EnemyWeapons.h"
-#include "App.h"
-#include "Bullet.h"
-#include "Random.h"
-#include "RenderManager.h"
-#include "SoundManager.h"
+#include "../App.h"
+#include "../entity/Bullet.h"
+#include "../Random.h"
+#include "../RenderManager.h"
+#include "../SoundManager.h"
 
 EnemyWeapon0::EnemyWeapon0()
 {

@@ -5,7 +5,7 @@
 #ifndef PROJECTNUMA_WEAPON_H
 #define PROJECTNUMA_WEAPON_H
 
-#include "GeneralDefinitions.h"
+#include "../GeneralDefinitions.h"
 
 /**
  * public class Weapon

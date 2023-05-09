@@ -3,11 +3,11 @@
 //
 
 #include "Player.h"
-#include "App.h"
-#include "RenderManager.h"
-#include "Weapon.h"
-#include "SoundManager.h"
-#include "Session.h"
+#include "../App.h"
+#include "../RenderManager.h"
+#include "../weapon/Weapon.h"
+#include "../SoundManager.h"
+#include "../Session.h"
 
 Player::Player()
 {
