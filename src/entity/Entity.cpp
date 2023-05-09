@@ -49,7 +49,7 @@ void Entity::tick()
         // this is bullet and hits something
         for (auto& e : App::getInstance().getEntities())
         {
-            if (!e->isDead && e->type != ENTITY_TYPE_BULLET && e->side != side && !e->isInvincible && CommonUtil.checkCollision(
+            if (!e->isDead && e->type != ENTITY_TYPE_BULLET && e->side != side && !e->isInvincible && CommonUtil::checkCollision(
                     e->x, e->y, e->width, e->height, x, y, width, height
             ))
             {
@@ -60,7 +60,7 @@ void Entity::tick()
             }
         }
     }
-    else if (type != ENTITY_TYPE_PLAYER && side != SIDE_PLAYER && CommonUtil.checkCollision(
+    else if (type != ENTITY_TYPE_PLAYER && side != SIDE_PLAYER && CommonUtil::checkCollision(
             App::getInstance().getPlayer()->x, App::getInstance().getPlayer()->y, App::getInstance().getPlayer()->width,
             App::getInstance().getPlayer()->height,
             x, y, width, height

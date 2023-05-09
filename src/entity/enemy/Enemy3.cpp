@@ -36,7 +36,7 @@ Enemy3::Enemy3()
         else if (self->reloadTicks <= 0)
         {
             self->isInvincible = false;
-            double deg = CommonUtil.getDegreeBetween(
+            double deg = CommonUtil::getDegreeBetween(
                     self->x + self->width / 2,
                     self->y + self->height / 2,
                     App::getInstance().getPlayer()->x + App::getInstance().getPlayer()->width / 2,

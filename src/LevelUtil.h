@@ -45,10 +45,10 @@ public:
     string name = "Unnamed level";
 };
 
-static class
+class LevelUtil
 {
 public:
-    Level loadLevel(const char* fileName)
+    static Level loadLevel(const char* fileName)
     {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading level: %s", fileName);
         ifstream f(fileName);
@@ -74,6 +74,6 @@ public:
         }
         else throw runtime_error(string("Failed to load level file: ") + fileName);
     }
-} LevelUtil;
+};
 
 #endif //PROJECTNUMA_LEVELUTIL_H

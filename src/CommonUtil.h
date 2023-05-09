@@ -10,13 +10,13 @@
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define MAX(a, b) (((a)>(b))?(a):(b))
 
-static class
+class CommonUtil
 {
 public:
     /**
      * Check if two rectangles overlap.
      */
-    bool checkCollision(
+    static bool checkCollision(
             const double& x1, const double& y1, const double& w1, const double& h1,
             const double& x2, const double& y2, const double& w2, const double& h2
     )
@@ -27,7 +27,7 @@ public:
     /**
      * How many nanoseconds have passed since 0:00:00 on January 1, 1970?
      */
-    unsigned long currentTimeNanos()
+    static unsigned long currentTimeNanos()
     {
         using namespace chrono;
         return duration_cast<nanoseconds>(
@@ -38,11 +38,11 @@ public:
     /**
      * Return the angle between the vector of point 1 to point 2 and the x-axis.
      */
-    double getDegreeBetween(const double& x1, const double& y1, const double& x2, const double& y2)
+    static double getDegreeBetween(const double& x1, const double& y1, const double& x2, const double& y2)
     {
         double dx = x2 - x1, dy = y2 - y1;
         return -atan2(dy, dx) * 57.2958;
     }
-} CommonUtil;
+};
 
 #endif //PROJECTNUMA_COMMONUTIL_H

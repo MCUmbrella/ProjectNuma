@@ -369,7 +369,7 @@ void App::mainLoop()
             }
             case STATE_GAME:
             {
-                Level defaultLevel = LevelUtil.loadLevel("assets/projectnuma/levels/infiniteNormal.level");
+                Level defaultLevel = LevelUtil::loadLevel("assets/projectnuma/levels/infiniteNormal.level");
                 doStateGame(&defaultLevel);
                 break;
             }
@@ -533,7 +533,7 @@ void App::doStateGame(Level* level)
     getPlayer()->isDead = false;
     getPlayer()->setLocation(100, WINDOW_HEIGHT / 2 - getPlayer()->height / 2);
     soundManager->setBGM("assets/projectnuma/sounds/music/game/0.ogg");
-    for (unsigned long tick = 0, time0 = 0, time1 = 0; (time0 = CommonUtil.currentTimeNanos()); tick++)
+    for (unsigned long tick = 0, time0 = 0, time1 = 0; (time0 = CommonUtil::currentTimeNanos()); tick++)
     {
         assert(enemyCounter[0] >= 0 && enemyCounter[1] >= 0 && enemyCounter[2] >= 0 && enemyCounter[3] >= 0);
         doSDLEvents();
@@ -544,7 +544,7 @@ void App::doStateGame(Level* level)
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Leaving main game");
                 goto toMainMenu;
             }
-            time0 = CommonUtil.currentTimeNanos();
+            time0 = CommonUtil::currentTimeNanos();
         }
         // check level goal
         if (
@@ -631,7 +631,7 @@ void App::doStateGame(Level* level)
         // clean up
         if (tick % 10 == 0)
             cleanupEntities();
-        time1 = CommonUtil.currentTimeNanos();
+        time1 = CommonUtil::currentTimeNanos();
         if (time1 - time0 > 16000000LU)
             SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
                         "Can't keep up! Is the game overloaded or the system time has changed?\n\tA single tick took %lu ns", time1 - time0);

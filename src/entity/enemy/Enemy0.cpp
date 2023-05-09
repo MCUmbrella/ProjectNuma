@@ -34,7 +34,7 @@ Enemy0::Enemy0()
         if (self->x + self->width <= 0 || self->y >= WINDOW_HEIGHT || self->y + self->height <= 0) self->hp = 0;
         else if (self->reloadTicks <= 0)
         {
-            double deg = CommonUtil.getDegreeBetween(
+            double deg = CommonUtil::getDegreeBetween(
                     self->x + self->width / 2,
                     self->y + self->height / 2,
                     App::getInstance().getPlayer()->x + App::getInstance().getPlayer()->width / 2,
