@@ -5,23 +5,26 @@
 #ifndef PROJECTNUMA_SOUNDMANAGER_H
 #define PROJECTNUMA_SOUNDMANAGER_H
 
+#include "GeneralDefinitions.h"
+
 static Mix_Music* bgm = null;
 
-static class
+class SoundManager
 {
 private:
-    map<const char*, Mix_Chunk*> sounds;
-    map<const char*, Mix_Music*> musics;
+    map<string, Mix_Chunk*> sounds;
+    map<string, Mix_Music*> musics;
+
 public:
     /**
      * Load a sound from file.
      * @param fileName File path.
      * @return The pointer to the sound object of the loaded sound file.
      */
-    Mix_Chunk* loadSound(const char* fileName)
+    Mix_Chunk* loadSound(const string& fileName)
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName);
-        Mix_Chunk* s = Mix_LoadWAV(fileName);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading sound: %s", fileName.c_str());
+        Mix_Chunk* s = Mix_LoadWAV(fileName.c_str());
         if (s == null)throw runtime_error(string("Sound not found: ") + fileName);
         sounds.emplace(fileName, s);
         return s;
@@ -31,7 +34,7 @@ public:
      * Get a loaded sound from its path.
      * @param name File path.
      */
-    Mix_Chunk* getSound(const char* name)
+    Mix_Chunk* getSound(const string& name)
     {
         Mix_Chunk* s = sounds[name];
         if (s == null) throw runtime_error(string("Sound not found: ") + name);
@@ -52,7 +55,7 @@ public:
      * Play a loaded sound by its file path.
      * @param name File path.
      */
-    void playSound(const char* name)
+    void playSound(const string& name)
     {
         playSound(getSound(name));
     }
@@ -62,10 +65,10 @@ public:
      * @param fileName File path.
      * @return The pointer to the music object of the loaded music file.
      */
-    Mix_Music* loadMusic(const char* fileName)
+    Mix_Music* loadMusic(const string& fileName)
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName);
-        Mix_Music* m = Mix_LoadMUS(fileName);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading music: %s", fileName.c_str());
+        Mix_Music* m = Mix_LoadMUS(fileName.c_str());
         if (m == null)throw runtime_error(string("Music not found: ") + fileName);
         musics.emplace(fileName, m);
         return m;
@@ -75,7 +78,7 @@ public:
      * Get a loaded music from its path.
      * @param name File path.
      */
-    Mix_Music* getMusic(const char* name)
+    Mix_Music* getMusic(const string& name)
     {
         Mix_Music* m = musics[name];
         if (m == null) throw runtime_error(string("Music not found: ") + name);
@@ -111,10 +114,10 @@ public:
      * Play a loaded music by its file path.
      * @param name File path.
      */
-    void setBGM(const char* name)
+    void setBGM(const string& name)
     {
         setBGM(getMusic(name));
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "BGM set to %s", name);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "BGM set to %s", name.c_str());
     }
 
     /**
@@ -127,13 +130,15 @@ public:
             printf("Couldn't initialize SDL Mixer\n");
             exit(1);
         }
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing sound manager");
         Mix_AllocateChannels(64);
-        for (const char* a : soundFiles)
+        for (string a : soundFiles)
             loadSound(a);
-        for (const char* a : musicFiles)
+        for (string a : musicFiles)
             loadMusic(a);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager initialization completed");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loaded sounds: %zd", sounds.size());
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loaded musics: %zd", musics.size());
     }
 
     /**
@@ -146,6 +151,6 @@ public:
         Mix_Quit();
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Sound manager is down");
     }
-} SoundManager;
+};
 
 #endif //PROJECTNUMA_SOUNDMANAGER_H

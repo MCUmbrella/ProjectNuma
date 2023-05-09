@@ -5,6 +5,8 @@
 #ifndef PROJECTNUMA_BULLET_H
 #define PROJECTNUMA_BULLET_H
 
+#include "Entity.h"
+
 /**
  * public class Bullet extends Entity
  */

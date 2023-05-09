@@ -5,7 +5,8 @@
 #ifndef PROJECTNUMA_RANDOM_H
 #define PROJECTNUMA_RANDOM_H
 
-#include <random>
+#include "GeneralDefinitions.h"
+#include "CommonUtil.h"
 
 class Random
 {

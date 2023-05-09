@@ -5,14 +5,18 @@
 #ifndef PROJECTNUMA_RENDERMANAGER_H
 #define PROJECTNUMA_RENDERMANAGER_H
 
+#include <iostream>
+#include "GeneralDefinitions.h"
+#include "App.h"
+
 static SDL_Texture* PLACEHOLDER_TEXTURE;
 static SDL_Renderer* renderer = null;
 static SDL_Window* window = null;
 
-static class
+class RenderManager
 {
 private:
-    map<const char*, SDL_Texture*> textures;
+    map<string, SDL_Texture*> textures;
     TTF_Font* font16 = null;
     TTF_Font* font24 = null;
     TTF_Font* font32 = null;
@@ -20,7 +24,7 @@ private:
     TTF_Font* font48 = null;
 
 public:
-    static SDL_Texture* surfaceToTexture(SDL_Surface* surface, bool destroySurface)
+    static SDL_Texture* surfaceToTexture(SDL_Surface* surface, const bool& destroySurface)
     {
         SDL_Texture* texture;
         texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -32,7 +36,7 @@ public:
     /**
      * Get the width of a texture.
      */
-    static int getTextureWidth(SDL_Texture* texture)
+    int getTextureWidth(SDL_Texture* texture)
     {
         if (texture == null) throw runtime_error("Null pointer passed to getTextureWidth()");
         int w;
@@ -43,7 +47,7 @@ public:
     /**
      * Get the height of a texture.
      */
-    static int getTextureHeight(SDL_Texture* texture)
+    int getTextureHeight(SDL_Texture* texture)
     {
         if (texture == null) throw runtime_error("Null pointer passed to getTextureHeight()");
         int h;
@@ -55,10 +59,10 @@ public:
      * Load a texture from file.
      * @param fileName The file path of the texture.
      */
-    SDL_Texture* loadTexture(const char* fileName)
+    SDL_Texture* loadTexture(const string& fileName)
     {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName);
-        SDL_Texture* texture = IMG_LoadTexture(renderer, fileName);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading texture: %s", fileName.c_str());
+        SDL_Texture* texture = IMG_LoadTexture(renderer, fileName.c_str());
         if (texture == null) throw runtime_error(string("Texture not found: ") + fileName);
         textures[fileName] = texture;
         return texture;
@@ -68,10 +72,9 @@ public:
      * Get the loaded texture by its path.
      * @param name The path of the texture file.
      */
-    SDL_Texture* getTexture(const char* name)
+    SDL_Texture* getTexture(const string& name)
     {
-        SDL_Texture* t = textures[name];
-        if (t == null) throw runtime_error(string("Texture not found: ") + name);
+        SDL_Texture* t = textures.at(name);
         return t;
     }
 
@@ -81,7 +84,7 @@ public:
      * @param width The width that needs to be stretched to.
      * @param height The height that needs to be stretched to.
      */
-    void placeTexture(SDL_Texture* texture, int x, int y, int width, int height)
+    void placeTexture(SDL_Texture* texture, const int& x, const int& y, const int& width, const int& height)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
@@ -96,7 +99,7 @@ public:
      * Place a texture on the screen.
      * @param texture The pointer to the texture.
      */
-    void placeTexture(SDL_Texture* texture, int x, int y)
+    void placeTexture(SDL_Texture* texture, const int& x, const int& y)
     {
         if (texture == null) throw runtime_error("Null pointer passed to placeTexture()");
         SDL_Rect destRect;
@@ -115,9 +118,12 @@ public:
      * @param a Alpha value.
      * @param size FontSize: XS, S, M, L, XL.
      */
-    SDL_Texture* textToTexture(const char* text, unsigned char r, unsigned char g, unsigned char b, unsigned char a, FontSize size)
+    SDL_Texture* textToTexture(
+            const string& text,
+            const unsigned char& r, const unsigned char& g, const unsigned char& b, const unsigned char& a,
+            const FontSize& size
+    )
     {
-        if (text == null) throw runtime_error("Null pointer passed to textToTexture()");
         SDL_Color color;
         color.r = r;
         color.g = g;
@@ -130,7 +136,7 @@ public:
                 size == FONT_SIZE_M ? font32 :
                 size == FONT_SIZE_S ? font24 :
                 font16,
-                text, color
+                text.c_str(), color
         );
         return surfaceToTexture(surface, true);
     }
@@ -153,11 +159,12 @@ public:
         }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing render manager");
         window = SDL_CreateWindow(VERSION, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS | (flFullscreen ? SDL_WINDOW_FULLSCREEN : 0));
+                                  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS | (App::getInstance().flFullscreen ? SDL_WINDOW_FULLSCREEN : 0));
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-        renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS | (flSoftwareRender ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED));
+        renderer = SDL_CreateRenderer(window, -1,
+                                      RENDERER_FLAGS | (App::getInstance().flSoftwareRender ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED));
         IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
-        for (const char* a : textureFiles)
+        for (string a : textureFiles)
             loadTexture(a);
         PLACEHOLDER_TEXTURE = getTexture("assets/projectnuma/textures/misc/placeholder.png");
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading font: %s", FONT_FILE);
@@ -168,6 +175,8 @@ public:
         font48 = TTF_OpenFont(FONT_FILE, 48);
         if (font16 == null) throw runtime_error(string("Font not found: ") + FONT_FILE);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager initialization completed");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loaded textures: %zd", textures.size());
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "&textures: %p", &textures);
     }
 
     /**
@@ -183,6 +192,6 @@ public:
         SDL_Quit();
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Render manager is down");
     }
-} RenderManager;
+};
 
 #endif //PROJECTNUMA_RENDERMANAGER_H

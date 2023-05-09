@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 project(ProjectNuma)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Debug)
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
@@ -10,6 +11,7 @@ pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
 pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
 
 add_compile_options(-Wall -Werror=maybe-uninitialized -Warray-bounds)
+add_link_options(-Wl,-rpath=.)
 
 Include_Directories(
         ${SDL2_INCLUDE_DIRS}

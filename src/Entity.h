@@ -5,6 +5,8 @@
 #ifndef PROJECTNUMA_ENTITY_H
 #define PROJECTNUMA_ENTITY_H
 
+#include "GeneralDefinitions.h"
+
 /**
  * public class Entity
  */

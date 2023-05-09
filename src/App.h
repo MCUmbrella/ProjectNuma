@@ -5,29 +5,48 @@
 #ifndef PROJECTNUMA_APP_H
 #define PROJECTNUMA_APP_H
 
+#include "GeneralDefinitions.h"
+#include "UIComponent.h"
+#include "LevelUtil.h"
+
 /**
  * public class App
  */
 class App
 {
 private:
-    shared_ptr<Player> player;
-    map<const char*, Weapon*> weapons;
-    list <shared_ptr<Entity>> entities;
-    list <shared_ptr<Entity>> environment;
-    vector<UIComponent*> ui;
+    App() = default;
+
+    ~App() = default;
+
+    Session* session = null;
+    Random* r = null;
+    Player* player;
 
 public:
+    App(const App&) = delete;
+
+    App& operator =(const App&) = delete;
+
     GameState state = STATE_STARTUP;
     bool pressedKey[1024]{};
+    bool flDebug = false, flFullscreen = false, flSoftwareRender = false;
     int killboardLevel[4]{};
     int enemyCounter[4]{};
     Level* currentLevel = null;
+    RenderManager* renderManager = null;
+    SoundManager* soundManager = null;
+
+    static App& getInstance();
+
+    Session& getSession();
+
+    Random& getRandom();
 
     /**
      * The codes to be executed when starting the game.
      */
-    void startup();
+    void startup(int argc, char** argv);
 
     /**
      * The codes to be executed when quitting the game.
@@ -60,7 +79,7 @@ public:
     /**
      * Get the list object that stores all the entities.
      */
-    list <shared_ptr<Entity>> getEntities();
+    list<shared_ptr<Entity>> getEntities();
 
     /**
      * Get the list object that stores all the UI components.

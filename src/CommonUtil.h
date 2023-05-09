@@ -2,9 +2,10 @@
 // Created by mcumbrella on 22-11-9.
 //
 
-#include <chrono>
-
 #ifndef PROJECTNUMA_COMMONUTIL_H
+#define PROJECTNUMA_COMMONUTIL_H
+
+#include "GeneralDefinitions.h"
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define MAX(a, b) (((a)>(b))?(a):(b))
@@ -15,7 +16,10 @@ public:
     /**
      * Check if two rectangles overlap.
      */
-    bool checkCollision(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2)
+    bool checkCollision(
+            const double& x1, const double& y1, const double& w1, const double& h1,
+            const double& x2, const double& y2, const double& w2, const double& h2
+    )
     {
         return (MAX(x1, x2) < MIN(x1 + w1, x2 + w2)) && (MAX(y1, y2) < MIN(y1 + h1, y2 + h2));
     }
@@ -34,13 +38,11 @@ public:
     /**
      * Return the angle between the vector of point 1 to point 2 and the x-axis.
      */
-    double getDegreeBeteween(double x1, double y1, double x2, double y2)
+    double getDegreeBetween(const double& x1, const double& y1, const double& x2, const double& y2)
     {
         double dx = x2 - x1, dy = y2 - y1;
         return -atan2(dy, dx) * 57.2958;
     }
 } CommonUtil;
-
-#define PROJECTNUMA_COMMONUTIL_H
 
 #endif //PROJECTNUMA_COMMONUTIL_H

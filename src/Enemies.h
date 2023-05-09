@@ -5,6 +5,8 @@
 #ifndef PROJECTNUMA_ENEMIES_H
 #define PROJECTNUMA_ENEMIES_H
 
+#include "Entity.h"
+
 /**
  * public class Enemy0 extends Entity
  */

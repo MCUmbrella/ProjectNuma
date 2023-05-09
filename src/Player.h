@@ -5,6 +5,8 @@
 #ifndef PROJECTNUMA_PLAYER_H
 #define PROJECTNUMA_PLAYER_H
 
+#include "Entity.h"
+
 /**
  * public class Player extends Entity
  */

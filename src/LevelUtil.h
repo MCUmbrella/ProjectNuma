@@ -5,8 +5,6 @@
 #ifndef PROJECTNUMA_LEVELUTIL_H
 #define PROJECTNUMA_LEVELUTIL_H
 
-#include <fstream>
-
 class Level
 {
 public:

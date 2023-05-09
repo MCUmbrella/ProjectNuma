@@ -5,6 +5,8 @@
 #ifndef PROJECTNUMA_WEAPON_H
 #define PROJECTNUMA_WEAPON_H
 
+#include "GeneralDefinitions.h"
+
 /**
  * public class Weapon
  */
@@ -14,7 +16,7 @@ public:
     int bulletDamage, reloadTicks;
     double bulletSpeed;
     string name = "(unnamed weapon)";
-    SDL_Texture* bulletTexture;
+    SDL_Texture* bulletTexture = null;
 
     /**
      *
