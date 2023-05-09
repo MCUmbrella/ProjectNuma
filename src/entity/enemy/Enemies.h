@@ -5,42 +5,9 @@
 #ifndef PROJECTNUMA_ENEMIES_H
 #define PROJECTNUMA_ENEMIES_H
 
-#include "../Entity.h"
-
-/**
- * public class Enemy0 extends Entity
- */
-class Enemy0 : public Entity
-{
-public:
-    Enemy0();
-};
-
-/**
- * public class Enemy1 extends Entity
- */
-class Enemy1 : public Entity
-{
-public:
-    Enemy1();
-};
-
-/**
- * public class Enemy2 extends Entity
- */
-class Enemy2 : public Entity
-{
-public:
-    Enemy2();
-};
-
-/**
- * public class Enemy3 extends Entity
- */
-class Enemy3 : public Entity
-{
-public:
-    Enemy3();
-};
+#include "Enemy0.h"
+#include "Enemy1.h"
+#include "Enemy2.h"
+#include "Enemy3.h"
 
 #endif //PROJECTNUMA_ENEMIES_H

@@ -10,8 +10,8 @@
 #include "entity/Player.h"
 #include "entity/enemy/Enemies.h"
 #include "weapon/Weapon.h"
-#include "weapon/PlayerWeapons.h"
-#include "weapon/EnemyWeapons.h"
+#include "weapon/player/PlayerWeapons.h"
+#include "weapon/enemy/EnemyWeapons.h"
 #include "CommonUtil.h"
 
 map<string, Weapon*> weapons;
